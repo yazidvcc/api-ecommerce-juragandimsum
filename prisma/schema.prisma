@@ -10,13 +10,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
 model User {
   id       Int    @id @default(autoincrement())
   name     String @db.VarChar(50)
   phone    String @db.VarChar(15)
   password String @db.VarChar(255)
   token    String @db.VarChar(255)
-
+  role     Role   @default(CUSTOMER)
   cart   Cart[]
   orders Order[]
 
