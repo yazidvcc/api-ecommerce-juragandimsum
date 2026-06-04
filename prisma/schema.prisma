@@ -25,6 +25,8 @@ model User {
   cart     Cart[]
   orders   Order[]
 
+  @@unique([phone])
+  @@unique([phone])
   @@map("users")
 }
 
