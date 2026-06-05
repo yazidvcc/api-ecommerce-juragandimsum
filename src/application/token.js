@@ -1,22 +1,22 @@
 import jwt from "jsonwebtoken";
 
-const signAccessToken = async (payload) => {
+const signAccessToken = (payload) => {
     return jwt.sign(payload, process.env.ACCESS_TOKEN, {
         expiresIn: "60m"
     });
 };
 
-const signRefreshToken = async (payload) => {
-    return jwt.sign(payload, process.env.REFERSH_TOKEN, {
+const signRefreshToken = (payload) => {
+    return jwt.sign(payload, process.env.REFRESH_TOKEN, {
         expiresIn: "7d"
     });
 };
 
-const verifyAccessToken = async (token) => {
+const verifyAccessToken = (token) => {
     return jwt.verify(token, process.env.ACCESS_TOKEN);
 };
 
-const verifyRefreshToken = async (token) => {
+const verifyRefreshToken = (token) => {
     return jwt.verify(token, process.env.REFRESH_TOKEN);
 };
 
@@ -25,4 +25,4 @@ export {
     signRefreshToken,
     verifyAccessToken,
     verifyRefreshToken
-}
+};

@@ -2,7 +2,8 @@ import validate from "../validation/validation.js";
 import prismaClient from "../application/database.js";
 import ResponseError from "../error/response-error.js";
 import bcrypt from "bcrypt";
-import { createUserValidation } from "../validation/user-validation.js";
+import { createUserValidation, loginUserValidation } from "../validation/user-validation.js";
+import { signAccessToken, signRefreshToken } from "../application/token.js";
 
 const create = async (request) => {
 
@@ -37,6 +38,52 @@ const create = async (request) => {
 
 }
 
+const login = async (request) => {
+
+    request = validate(loginUserValidation, request);
+
+    const user = await prismaClient.user.findUnique({
+        where: {
+            phone: request.phone
+        }
+    });
+
+    if (!user) {
+        await bcrypt.compare(password, '$2b$12$dummyhashuntuktimingatack000000')
+        throw new ResponseError(401, "phone or password is wrong");
+    };
+
+    const isPasswordValid = await bcrypt.compare(request.password, user.password);
+
+    if (!isPasswordValid) {
+        throw new ResponseError(401, "phone or password is wrong");
+    };
+
+    const payload = {
+        id: user.id,
+        phone: user.phone
+    };
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+
+    await prismaClient.user.update({
+        where: {
+            id: user.id
+        },
+        data: {
+            token: refreshToken 
+        }
+    });
+
+    return {
+        id: user.id,
+        phone: user.phone,
+        accessToken: accessToken
+    }
+
+}
+
 export default {
-    create
+    create,
+    login
 };

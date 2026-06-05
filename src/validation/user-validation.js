@@ -10,6 +10,12 @@ const createUserValidation = Joi.object({
     })
 });
 
+const loginUserValidation = Joi.object({
+    phone: Joi.string().min(11).max(13).pattern(/^[0-9]+$/).required(),
+    password: Joi.string().max(255).required()
+});
+
 export {
-    createUserValidation
+    createUserValidation,
+    loginUserValidation
 }

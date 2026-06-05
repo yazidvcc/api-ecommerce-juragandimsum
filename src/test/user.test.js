@@ -109,3 +109,62 @@ describe("POST /api/users", () => {
     });
 
 });
+
+describe("POST /api/users/login", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+    });
+
+    it("should success user login", async () => {
+
+        const userRegister = await createCustomerTest("yazid", "0895600436143", "password")
+        
+        const response = await request(web).post("/api/users/login")
+            .set("Accept", "application/json")
+            .send({
+                phone: "0895600436143",
+                password: "password"
+            });
+        
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.phone).toBe("0895600436143");
+
+    });
+
+    it("should reject if phone invalid", async () => {
+        
+        const response = await request(web).post("/api/users/login")
+            .set("Accept", "application/json")
+            .send({
+                phone: "089560043iuop",
+                password: "password"
+            });
+        
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined()
+
+    });
+
+    it("should reject if password invalid", async () => {
+        
+        const userRegister = await createCustomerTest("yazid", "0895600436143", "password")
+
+        const response = await request(web).post("/api/users/login")
+            .set("Accept", "application/json")
+            .send({
+                phone: "0895600436143",
+                password: "salah"
+            });
+        
+        depth(response.body);
+
+        expect(response.status).toBe(401);
+        expect(response.body.errors).toBeDefined()
+
+    });
+});
