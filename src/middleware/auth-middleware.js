@@ -15,6 +15,7 @@ const authMiddleware = (req, res, next) => {
     try {
         const payload = verifyAccessToken(token);
         req.user = payload;
+        next();
     } catch (e) {
         const errors = e.name === "TokenExpiredError" ? "Token sudah kadaluwarsa" : "Token tidak valid";
         return res.status(401).json({ errors });
