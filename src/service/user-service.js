@@ -78,12 +78,27 @@ const login = async (request) => {
     return {
         id: user.id,
         phone: user.phone,
-        accessToken: accessToken
-    }
+        accessToken: accessToken,
+        refreshToken: refreshToken
+    };
+
+}
+
+const logout = async (token) => {
+
+    await prismaClient.user.updateMany({
+        where: {
+            token: token
+        },
+        data: {
+            token: null
+        }
+    });
 
 }
 
 export default {
     create,
-    login
+    login,
+    logout
 };
