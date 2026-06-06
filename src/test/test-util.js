@@ -1,5 +1,7 @@
 import prismaClient from "../application/database.js";
 import bcrypt from "bcrypt";
+import request from "supertest";
+import { web } from "../application/web.js";
 
 const createCustomerTest = async (name, phone, password) => {
 
@@ -15,6 +17,16 @@ const createCustomerTest = async (name, phone, password) => {
 
 };
 
+const loginCustomerTest = async (phone, password) => {
+    return request(web).post("/api/users/login")
+            .set("Accept", "application/json")
+            .send({
+                phone: phone,
+                password: password
+            });
+}
+
 export {
-    createCustomerTest
+    createCustomerTest,
+    loginCustomerTest
 };

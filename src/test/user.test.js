@@ -2,7 +2,7 @@ import prismaClient from "../application/database.js";
 import request from "supertest";
 import { web } from "../application/web.js";
 import { depth } from "../application/logging.js";
-import { createCustomerTest } from "./test-util.js";
+import { createCustomerTest, loginCustomerTest } from "./test-util.js";
 
 describe("POST /api/users", () => {
 
@@ -168,3 +168,26 @@ describe("POST /api/users/login", () => {
 
     });
 });
+
+describe("POST /api/users/logout", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+    });
+
+    it("should success logout", async () => {
+        
+        const userRegister = await createCustomerTest("yazid", "0895600436143", "password");
+        const loginUser = await loginCustomerTest("0895600436143", "password");
+
+        const response = await request(web).post("/api/users/logout")
+            .set("Cookie", loginUser.get("Set-Cookie"));
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toBe("OK")
+
+    })
+
+})
