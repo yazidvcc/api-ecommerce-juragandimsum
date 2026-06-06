@@ -191,3 +191,37 @@ describe("POST /api/users/logout", () => {
     })
 
 })
+
+describe("POST /api/users/refresh", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+    });
+
+    it("should success get new access token", async () => {
+        
+        const userRegister = await createCustomerTest("yazid", "0895600436143", "password");
+        const loginUser = await loginCustomerTest("0895600436143", "password");
+
+        const response = await request(web).post("/api/users/refresh")
+            .set("Cookie", loginUser.get("Set-Cookie"));
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.accessToken).toBeDefined()
+
+    });
+
+    it("should reject if refresh token cookie doesn't exist", async () => {
+        
+        const response = await request(web).post("/api/users/refresh")
+
+        depth(response.body);
+
+        expect(response.status).toBe(401);
+        expect(response.body.errors).toBeDefined()
+
+    });
+
+})
