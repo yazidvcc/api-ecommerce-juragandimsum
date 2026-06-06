@@ -26,7 +26,6 @@ model User {
   orders   Order[]
 
   @@unique([phone])
-  @@unique([phone])
   @@map("users")
 }
 
@@ -41,8 +40,19 @@ model Product {
 
   cart         Cart[]
   orderDetails OrderDetail[]
+  productPhoto ProductPhoto[]
 
   @@map("products")
+}
+
+model ProductPhoto {
+  id         Int    @id @default(autoincrement())
+  product_id Int
+  url        String @db.VarChar(300)
+
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("product_photos")
 }
 
 model Cart {
