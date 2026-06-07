@@ -1,6 +1,6 @@
-const roleMiddleware = async (requiredRole) => {
+const roleMiddleware = (requiredRole) => {
     return (req, res, next) => {
-        if (!req.user || !requiredRole.include(req.user.role)) {
+        if (!req.user || !requiredRole.includes(req.user.role)) {
             return res.status(401).json({
                 errors: "Insufficient permission"
             });

@@ -1,11 +1,11 @@
 import * as Minio from 'minio';
 
 const minioClient = new Minio.Client({
-    endPoint: process.env.MINIO_ENDPOINT,
-    port: parseInt(process.env.MINIO_PORT),
+    endPoint: process.env.MINIO_ENDPOINT || '127.0.0.1',
+    port: parseInt(process.env.MINIO_PORT || '9000'),
     useSSL: false,
-    accessKey: process.env.MINIO_ACCESS_KEY,
-    secretKey: process.env.MINIO_SECRET_KEY,
+    accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+    secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
 });
 
 async function initBucket() {
@@ -19,7 +19,11 @@ async function initBucket() {
 };
 
 (async () => {
-    await initBucket();
+    try {
+        await initBucket();
+    } catch (e) {
+        console.warn("MinIO connection failed. Make sure MinIO is running:", e.message);
+    }
 })();
 
 export default minioClient;
