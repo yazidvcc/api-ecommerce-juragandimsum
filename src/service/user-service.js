@@ -61,7 +61,8 @@ const login = async (request) => {
 
     const payload = {
         id: user.id,
-        phone: user.phone
+        phone: user.phone,
+        role: user.role
     };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
