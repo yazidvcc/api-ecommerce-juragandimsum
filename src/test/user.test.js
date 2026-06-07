@@ -2,7 +2,7 @@ import prismaClient from "../application/database.js";
 import request from "supertest";
 import { web } from "../application/web.js";
 import { depth } from "../application/logging.js";
-import { createCustomerTest, loginCustomerTest } from "./test-util.js";
+import { createUserTest, loginUserTest } from "./test-util.js";
 
 describe("POST /api/users", () => {
 
@@ -89,7 +89,7 @@ describe("POST /api/users", () => {
 
     it("should reject if phone already exist", async () => {
 
-        const registerFirst = await createCustomerTest("rizal", "0895600436143", "password");
+        const registerFirst = await createUserTest("rizal", "0895600436143", "password");
         
         const response = await request(web).post("/api/users")
             .set("Accept", "application/json")
@@ -118,7 +118,7 @@ describe("POST /api/users/login", () => {
 
     it("should success user login", async () => {
 
-        const userRegister = await createCustomerTest("yazid", "0895600436143", "password")
+        const userRegister = await createUserTest("yazid", "0895600436143", "password")
         
         const response = await request(web).post("/api/users/login")
             .set("Accept", "application/json")
@@ -152,7 +152,7 @@ describe("POST /api/users/login", () => {
 
     it("should reject if password invalid", async () => {
         
-        const userRegister = await createCustomerTest("yazid", "0895600436143", "password")
+        const userRegister = await createUserTest("yazid", "0895600436143", "password")
 
         const response = await request(web).post("/api/users/login")
             .set("Accept", "application/json")
@@ -177,8 +177,8 @@ describe("POST /api/users/logout", () => {
 
     it("should success logout", async () => {
         
-        const userRegister = await createCustomerTest("yazid", "0895600436143", "password");
-        const loginUser = await loginCustomerTest("0895600436143", "password");
+        const userRegister = await createUserTest("yazid", "0895600436143", "password");
+        const loginUser = await loginUserTest("0895600436143", "password");
 
         const response = await request(web).post("/api/users/logout")
             .set("Cookie", loginUser.get("Set-Cookie"));
@@ -200,8 +200,8 @@ describe("POST /api/users/refresh", () => {
 
     it("should success get new access token", async () => {
         
-        const userRegister = await createCustomerTest("yazid", "0895600436143", "password");
-        const loginUser = await loginCustomerTest("0895600436143", "password");
+        const userRegister = await createUserTest("yazid", "0895600436143", "password");
+        const loginUser = await loginUserTest("0895600436143", "password");
 
         const response = await request(web).post("/api/users/refresh")
             .set("Cookie", loginUser.get("Set-Cookie"));
