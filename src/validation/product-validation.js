@@ -21,8 +21,11 @@ const searchProductValidation = Joi.object({
     page: Joi.number().min(1).default(1).optional()
 });
 
+const idProductValidation = Joi.number().positive().required();
+
 export {
     createProductValidation,
     updateProductValidation,
-    searchProductValidation
+    searchProductValidation,
+    idProductValidation
 };

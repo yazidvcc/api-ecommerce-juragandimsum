@@ -1,6 +1,6 @@
 import prismaClient from "../application/database";
 import ResponseError from "../error/response-error";
-import { createProductValidation, searchProductValidation, updateProductValidation } from "../validation/product-validation";
+import { createProductValidation, idProductValidation, searchProductValidation, updateProductValidation } from "../validation/product-validation";
 import validate from "../validation/validation";
 import path from "path";
 import { v4 as uuid } from "uuid";
@@ -227,8 +227,43 @@ const search = async (request) => {
 
 }
 
+const get = async (productId) => {
+
+    productId = validate(idProductValidation, productId);
+
+    const product = await prismaClient.product.findUnique({
+        where: {
+            id: productId
+        },
+        include: {
+            productPhoto: true
+        }
+    });
+
+    if (!product) {
+        throw new ResponseError(404, "product not found")
+    };
+
+    if (product.productPhoto.length > 0) {
+        const urlPhotos = await Promise.all(product.productPhoto.map(
+            async (path) => {
+                const bucket = process.env.MINIO_BUCKET_PRODUCT;
+                const presignedUrl = await minioClient.presignedGetObject(bucket, path.url);
+
+                return presignedUrl;
+            }));
+
+        delete product.productPhoto;
+        product.url_photos = urlPhotos;
+    }
+
+    return product;
+
+}
+
 export default {
     create,
     update,
-    search
+    search,
+    get
 };
