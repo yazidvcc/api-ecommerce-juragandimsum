@@ -1,7 +1,7 @@
 import prismaClient from "../application/database";
 import request from "supertest";
 import { depth } from "../application/logging";
-import { createProductTest, createUserTest, loginUserTest } from "./test-util";
+import { createProductImageTest, createProductTest, createUserTest, loginUserTest } from "./test-util";
 import { web } from "../application/web";
 
 describe("POST /api/products", () => {
@@ -203,4 +203,34 @@ describe("PATCH /api/products/productId", () => {
         expect(response.status).toBe(400);
         expect(response.body.errors).toBeDefined();
     })
+})
+
+describe("GET /api/products", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    })
+
+    it("should success get all products", async () => {
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        for (let i = 1; i < 10; i++) {
+            await createProductImageTest(`Dimsum ${i}`, userLogin.body.data.accessToken);
+        };
+
+        const response = await request(web).get(`/api/products`)
+            .query({
+                size: 5
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.length).toBe(5)
+    })
+
 })

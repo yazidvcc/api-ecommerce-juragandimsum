@@ -27,7 +27,19 @@ const update = async (req, res, next) => {
 
 };
 
+const search = async (req, res, next) => {
+    
+    try {
+        const result = await productService.search(req.query);
+        res.status(200).json(result);
+    } catch (e) {
+        next(e);
+    }
+
+};
+
 export default {
     create,
-    update
+    update,
+    search
 };
