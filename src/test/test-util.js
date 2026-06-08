@@ -20,11 +20,11 @@ const createUserTest = async (name, phone, password, role = "CUSTOMER") => {
 
 const loginUserTest = async (phone, password) => {
     return request(web).post("/api/users/login")
-            .set("Accept", "application/json")
-            .send({
-                phone: phone,
-                password: password
-            });
+        .set("Accept", "application/json")
+        .send({
+            phone: phone,
+            password: password
+        });
 }
 
 const createProductTest = async (name) => {
@@ -41,8 +41,23 @@ const createProductTest = async (name) => {
     });
 };
 
+const createProductImageTest = async (nameProduct, accessToken) => {
+
+    return await request(web).post("/api/products")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .set("Content-Type", "multipart/form-data")
+        .field("name", nameProduct)
+        .field("description", "dimsum ayam segar")
+        .field("price", 28000)
+        .field("stock", 20)
+        .attach("photo", __dirname + "/product_dimsum/image.png")
+        .attach("photo", __dirname + "/product_dimsum/image2.png");
+        
+}
+
 export {
     createUserTest,
     loginUserTest,
-    createProductTest
+    createProductTest,
+    createProductImageTest
 };

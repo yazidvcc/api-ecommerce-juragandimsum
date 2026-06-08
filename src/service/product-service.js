@@ -1,6 +1,6 @@
 import prismaClient from "../application/database";
 import ResponseError from "../error/response-error";
-import { createProductValidation, updateProductValidation } from "../validation/product-validation";
+import { createProductValidation, searchProductValidation, updateProductValidation } from "../validation/product-validation";
 import validate from "../validation/validation";
 import path from "path";
 import { v4 as uuid } from "uuid";
@@ -163,11 +163,72 @@ const update = async (request) => {
         });
     });
 
-    return updateProduct    
+    return updateProduct
+
+}
+
+const search = async (request) => {
+
+    request = validate(searchProductValidation, request);
+
+    const skip = request.size * (request.page - 1);
+
+    const filter = {};
+    if (request.name) {
+        filter.name = request.name
+    }
+
+    const products = await prismaClient.product.findMany({
+        where: filter,
+        skip: skip,
+        take: request.size,
+        include: {
+            productPhoto: {
+                select: {
+                    url: true
+                },
+                take: 1
+            }
+        }
+    });
+
+    const finalProducts = await Promise.all(products.map(async product => {
+        if (product.productPhoto.length === 0) {
+            delete product.productPhoto
+            return {
+                ...product,
+                photo_url: null
+            }
+        }
+
+        const bucket = process.env.MINIO_BUCKET_PRODUCT;
+        const presignedUrl = await minioClient.presignedGetObject(bucket, product.productPhoto[0].url, 60 * 60);
+
+        delete product.productPhoto
+
+        return {
+            ...product,
+            photo_url: presignedUrl
+        };
+    }))
+
+    const countProduct = await prismaClient.product.count({
+        where: filter
+    });
+
+    return {
+        data: finalProducts,
+        paging: {
+            page: request.page,
+            total_page: Math.ceil(countProduct / request.size),
+            total_items: countProduct
+        }
+    };
 
 }
 
 export default {
     create,
-    update
+    update,
+    search
 };
