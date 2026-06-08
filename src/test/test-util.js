@@ -34,6 +34,9 @@ const createProductTest = async (name) => {
             description: "Description product",
             price: 20000,
             stock: 30
+        },
+        select: {
+            id: true
         }
     });
 };

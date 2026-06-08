@@ -14,7 +14,7 @@ describe("POST /api/products", () => {
     })
 
     it("should success create product", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
 
         const response = await request(web).post("/api/products")
@@ -38,7 +38,7 @@ describe("POST /api/products", () => {
     })
 
     it("should reject if price or stock is null", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
 
         const response = await request(web).post("/api/products")
@@ -57,7 +57,7 @@ describe("POST /api/products", () => {
     })
 
     it("should reject if not upload photo product", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
 
         const response = await request(web).post("/api/products")
@@ -76,7 +76,7 @@ describe("POST /api/products", () => {
     })
 
     it("should reject if file extension invalid", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
 
         const response = await request(web).post("/api/products")
@@ -97,7 +97,7 @@ describe("POST /api/products", () => {
     })
 
     it("should reject if name product already exist", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
         const createProduct = await createProductTest("dimsum ayam")
 
@@ -118,4 +118,89 @@ describe("POST /api/products", () => {
 
     })
 
+})
+
+describe("PATCH /api/products/productId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    })
+
+    it("should success update data name product", async () => {
+        
+        const userLogin = await loginUserTest("0895600436143", "password");
+        const product = await createProductTest("dimsum ayam");
+
+        const response = await request(web).patch(`/api/products/${product.id}`)
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                name: "Dimsum udang keju"
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.name).toBe("Dimsum udang keju");
+
+    })
+
+    it("should success update data price product", async () => {
+        
+        const userLogin = await loginUserTest("0895600436143", "password");
+        const product = await createProductTest("dimsum ayam");
+
+        const response = await request(web).patch(`/api/products/${product.id}`)
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                price: 40000
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.price).toBe(40000);
+
+    })
+
+    it("should reject if request body invalid", async () => {
+        
+        const userLogin = await loginUserTest("0895600436143", "password");
+        const product = await createProductTest("dimsum ayam");
+
+        const response = await request(web).patch(`/api/products/${product.id}`)
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                price: "dimsum"
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if name is already exist", async () => {
+        
+        const userLogin = await loginUserTest("0895600436143", "password");
+        const product1 = await createProductTest("dimsum ayam");
+        const product2 = await createProductTest("dimsum udang keju");
+
+        const response = await request(web).patch(`/api/products/${product1.id}`)
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                name: "dimsum udang keju"
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
 })

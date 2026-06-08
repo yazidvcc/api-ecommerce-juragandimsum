@@ -1,6 +1,6 @@
 import prismaClient from "../application/database";
 import ResponseError from "../error/response-error";
-import { createProductValidation } from "../validation/product-validation";
+import { createProductValidation, updateProductValidation } from "../validation/product-validation";
 import validate from "../validation/validation";
 import path from "path";
 import { v4 as uuid } from "uuid";
@@ -24,7 +24,7 @@ const create = async (requestBody, requestFile) => {
 
     for (const file of files) {
         const fileExtension = path.extname(file.name).toLowerCase();
-        const mimeType = file.mimetype; 
+        const mimeType = file.mimetype;
 
         const isValidFileExtension = allowedExtension.includes(fileExtension);
         const isValidMimeType = allowedMimeType.includes(mimeType);
@@ -68,7 +68,7 @@ const create = async (requestBody, requestFile) => {
     try {
         await Promise.all(validatedFiles.map(async (file) => {
             const urlFile = `product-${product.id}/${uuid()}${file.extension}`;
-            
+
             await minioClient.putObject(
                 bucketName,
                 urlFile,
@@ -121,6 +121,53 @@ const create = async (requestBody, requestFile) => {
     }
 };
 
+const update = async (request) => {
+
+    request = validate(updateProductValidation, request);
+
+    if (!request.name && !request.description && !request.price && !request.stock) {
+        throw new ResponseError(400, "not receiving any data")
+    }
+
+    const updateProduct = await prismaClient.$transaction(async (tx) => {
+        const product = await tx.product.findUnique({
+            where: {
+                id: request.id
+            }
+        });
+
+        if (!product) {
+            throw new ResponseError(404, "product is not found");
+        };
+
+        if (request.name) {
+            const countInDatabase = await tx.product.count({
+                where: {
+                    name: request.name,
+                    id: {
+                        not: request.id
+                    }
+                }
+            })
+
+            if (countInDatabase > 0) {
+                throw new ResponseError(400, "name product already exist");
+            }
+        };
+
+        return await tx.product.update({
+            where: {
+                id: product.id,
+            },
+            data: request
+        });
+    });
+
+    return updateProduct    
+
+}
+
 export default {
-    create
+    create,
+    update
 };
