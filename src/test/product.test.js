@@ -287,3 +287,60 @@ describe("GET /api/products/productId", () => {
     })
 
 })
+
+describe("DELETE /api/products/productId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    })
+
+    it("should success remove product", async () => {
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        const product = await createProductImageTest(`Dimsum 1`, userLogin.body.data.accessToken);
+
+        const response = await request(web).delete(`/api/products/${product.body.data.id}`)
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`);
+        
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toBe("OK");
+    })
+
+    it("should reject remove if id invalid", async () => {
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        const product = await createProductImageTest(`Dimsum 1`, userLogin.body.data.accessToken);
+
+        const response = await request(web).delete(`/api/products/satu`)
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`);
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject remove if id not found", async () => {
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        const product = await createProductImageTest(`Dimsum 1`, userLogin.body.data.accessToken);
+
+        const response = await request(web).delete(`/api/products/9999`)
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`);
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    })
+
+})
