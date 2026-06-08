@@ -12,5 +12,6 @@ publicRouter.post("/users/logout", userController.logout);
 publicRouter.post("/users/refresh", authController.refresh);
 
 publicRouter.get("/products", productController.search);
+publicRouter.get("/products/:productId", productController.get);
 
 export default publicRouter;

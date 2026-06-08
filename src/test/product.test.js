@@ -130,7 +130,7 @@ describe("PATCH /api/products/productId", () => {
     })
 
     it("should success update data name product", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
         const product = await createProductTest("dimsum ayam");
 
@@ -149,7 +149,7 @@ describe("PATCH /api/products/productId", () => {
     })
 
     it("should success update data price product", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
         const product = await createProductTest("dimsum ayam");
 
@@ -168,7 +168,7 @@ describe("PATCH /api/products/productId", () => {
     })
 
     it("should reject if request body invalid", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
         const product = await createProductTest("dimsum ayam");
 
@@ -186,7 +186,7 @@ describe("PATCH /api/products/productId", () => {
     })
 
     it("should reject if name is already exist", async () => {
-        
+
         const userLogin = await loginUserTest("0895600436143", "password");
         const product1 = await createProductTest("dimsum ayam");
         const product2 = await createProductTest("dimsum udang keju");
@@ -231,6 +231,59 @@ describe("GET /api/products", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.data.length).toBe(5)
+    })
+
+})
+
+describe("GET /api/products/productId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    })
+
+    it("should success get product by id", async () => {
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        const product = await createProductImageTest(`Dimsum 1`, userLogin.body.data.accessToken);
+
+        const response = await request(web).get(`/api/products/${product.body.data.id}`);
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.id).toBe(product.body.data.id);
+    })
+
+    it("should reject if id invalid", async () => {
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        const product = await createProductImageTest(`Dimsum 1`, userLogin.body.data.accessToken);
+
+        const response = await request(web).get(`/api/products/satu`);
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if id not found", async () => {
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        const product = await createProductImageTest(`Dimsum 1`, userLogin.body.data.accessToken);
+
+        const response = await request(web).get(`/api/products/9999`);
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
     })
 
 })
