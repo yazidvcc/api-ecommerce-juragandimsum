@@ -52,9 +52,24 @@ const get = async (req, res, next) => {
 
 };
 
+const remove = async (req, res, next) => {
+    
+    try {
+        const productId = parseInt(req.params.productId);
+        const result = await productService.remove(productId);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+
+};
+
 export default {
     create,
     update,
     search,
-    get
+    get,
+    remove
 };

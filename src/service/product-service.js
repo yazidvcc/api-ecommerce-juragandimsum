@@ -261,9 +261,34 @@ const get = async (productId) => {
 
 }
 
+const remove = async (productId) => {
+
+    productId = validate(idProductValidation, productId);
+
+    const product = await prismaClient.product.count({
+        where: {
+            id: productId
+        }
+    });
+
+    if (product === 0) {
+        throw new ResponseError(404, "product not found")
+    };
+
+    await prismaClient.product.delete({
+        where: {
+            id: productId
+        }
+    });
+
+    return "OK";
+
+}
+
 export default {
     create,
     update,
     search,
-    get
+    get,
+    remove
 };

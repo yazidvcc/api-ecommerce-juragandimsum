@@ -9,5 +9,6 @@ protectedRouter.use(authMiddleware);
 
 protectedRouter.post("/products", roleMiddleware(["ADMIN"]),productController.create);
 protectedRouter.patch("/products/:productId", roleMiddleware(["ADMIN"]),productController.update);
+protectedRouter.delete("/products/:productId", roleMiddleware(["ADMIN"]),productController.remove);
 
 export default protectedRouter;
