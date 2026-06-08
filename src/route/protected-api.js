@@ -8,5 +8,6 @@ const protectedRouter = express.Router();
 protectedRouter.use(authMiddleware);
 
 protectedRouter.post("/products", roleMiddleware(["ADMIN"]),productController.create);
+protectedRouter.patch("/products/:productId", roleMiddleware(["ADMIN"]),productController.update);
 
 export default protectedRouter;
