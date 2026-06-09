@@ -55,13 +55,13 @@ const createProductImageTest = async (nameProduct, accessToken) => {
         
 }
 
-const createCartTest = async (user_id, product_id) => {
+const createCartTest = async (user_id, product_id, quantity = 5) => {
 
     return prismaClient.cart.create({
         data: {
             user_id: user_id,
             product_id: product_id,
-            quantity: 5
+            quantity: quantity
         }
     });
 

@@ -114,3 +114,61 @@ describe("POST /api/carts", () => {
         expect(response.body.errors).toBeDefined();
     })
 })
+
+describe("GET /api/carts", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+        await createUserTest("yazid", "0895600436144", "passwordd", "CUSTOMER");
+    });
+
+    it("should sucess get list products in cart", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+        
+        let products = [];
+        for (let i = 1; i <= 5; i++) {
+            const product = await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+            products.push(product);
+        }
+
+        let count = 0
+        products.forEach(async product => {
+            count++;
+            if (count > 3) {
+                return
+            }
+            await createCartTest(customerLogin.body.data.id, product.body.data.id);
+        });
+
+        const response = await request(web).get("/api/carts")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`);
+        
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.length).toBe(3);
+    })
+
+    it("should sucess get list even product is null", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+        
+        let products = [];
+        for (let i = 1; i <= 5; i++) {
+            const product = await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+            products.push(product);
+        }
+
+        const response = await request(web).get("/api/carts")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`);
+        
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+    })
+
+})
