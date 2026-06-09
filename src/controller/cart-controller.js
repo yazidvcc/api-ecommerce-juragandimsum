@@ -26,7 +26,22 @@ const get = async (req, res, next) => {
 
 };
 
+const remove = async (req, res, next) => {
+    
+    try {
+        const cartId = parseInt(req.params.cartId);
+        const result = await cartService.remove(cartId, req.user.id);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+
+};
+
 export default {
     create,
-    get
+    get,
+    remove
 };

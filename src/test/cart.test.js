@@ -1,7 +1,7 @@
 import request from "supertest";
 import prismaClient from "../application/database.js";
 import { web } from "../application/web.js";
-import { createUserTest, createProductImageTest, loginUserTest, createCartTest } from "./test-util.js";
+import { createUserTest, createProductImageTest, loginUserTest, createCartTest, getCartTest } from "./test-util.js";
 import { depth } from "../application/logging.js";
 
 describe("POST /api/carts", () => {
@@ -171,4 +171,71 @@ describe("GET /api/carts", () => {
         expect(response.status).toBe(200);
     })
 
+})
+
+describe("DELETE /api/carts/cartId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+        await createUserTest("yazid", "0895600436144", "passwordd", "CUSTOMER");
+    });
+
+    it("should success remove product from cart", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+        
+        let products = [];
+        for (let i = 1; i <= 5; i++) {
+            const product = await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+            products.push(product);
+        }
+
+        let count = 0
+        products.forEach(async product => {
+            count++;
+            if (count > 3) {
+                return
+            }
+            await createCartTest(customerLogin.body.data.id, product.body.data.id);
+        });
+
+        const cart = await getCartTest(customerLogin.body.data.id);
+
+        const response = await request(web).delete(`/api/carts/${cart.id}`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toBe("OK");
+    })
+
+    it("should reject if idCart invalid", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        const response = await request(web).delete(`/api/carts/number`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if id cart not found", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        const response = await request(web).delete(`/api/carts/9999`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    })
 })
