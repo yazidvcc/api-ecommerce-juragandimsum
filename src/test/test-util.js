@@ -55,22 +55,33 @@ const createProductImageTest = async (nameProduct, accessToken) => {
         
 }
 
-const createCartTest = async (user_id, product_id, quantity = 5) => {
+const createCartTest = async (userId, productId, quantity = 5) => {
 
     return prismaClient.cart.create({
         data: {
-            user_id: user_id,
-            product_id: product_id,
+            user_id: userId,
+            product_id: productId,
             quantity: quantity
         }
     });
 
 }
 
+const getCartTest = async (userId) => {
+    
+    return prismaClient.cart.findFirst({
+        where: {
+            user_id: userId
+        }
+    });
+
+};
+
 export {
     createUserTest,
     loginUserTest,
     createProductTest,
     createProductImageTest,
-    createCartTest
+    createCartTest,
+    getCartTest
 };

@@ -1,7 +1,7 @@
 import prismaClient from "../application/database";
 import minioClient from "../application/minio.js";
 import ResponseError from "../error/response-error";
-import { createCartValidation } from "../validation/cart-validation";
+import { createCartValidation, idCartValidation } from "../validation/cart-validation";
 import validate from "../validation/validation.js";
 
 const create = async (request, userId) => {
@@ -98,7 +98,43 @@ const get = async (userId) => {
 
 };
 
+const remove = async (cartId, userId) => {
+    
+    cartId = validate(idCartValidation, cartId);
+
+    const countUser = await prismaClient.user.count({
+        where: {
+            id: userId
+        }
+    });
+
+    if (countUser === 0) {
+        throw new ResponseError(404, "user is not found");
+    };
+
+    const countCart = await prismaClient.cart.count({
+        where: {
+            id: cartId,
+            user_id: userId
+        }
+    });
+
+    if (countCart === 0) {
+        throw new ResponseError(404, "cart is not found");
+    };
+
+    await prismaClient.cart.delete({
+        where: {
+            id: cartId
+        }
+    });
+    
+    return "OK";
+
+}
+
 export default {
     create,
-    get
+    get,
+    remove
 };
