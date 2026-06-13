@@ -1,0 +1,233 @@
+import prismaClient from "../application/database";
+import request from "supertest";
+import { createProductImageTest, createUserTest, loginUserTest } from "./test-util";
+import { web } from "../application/web";
+import { depth } from "../application/logging";
+
+describe("POST /api/orders", () => {
+
+    beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+        await createUserTest("yazid", "0895600436144", "passwordd", "CUSTOMER");
+    });
+
+    it("should success create order product", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);            
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+
+        const response = await request(web).post("/api/orders")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                province: "Sumatera Utara",
+                city: "Medan",
+                district: "Marelan",
+                postal_code: 20250,
+                spesifict_address: "Jl.Titi Pahlawan Gg.Pringgan, Lr.Murai",
+                product: [
+                    {
+                        product_id: product1.id,
+                        quantity: 10
+                    },
+                    {
+                        product_id: product2.id,
+                        quantity: 15
+                    }
+                ]
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(201);
+        expect(response.body.data).toBeDefined();
+    });
+
+    it("should success create order product without postal_code", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);            
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+
+        const response = await request(web).post("/api/orders")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                province: "Sumatera Utara",
+                city: "Medan",
+                district: "Marelan",
+                spesifict_address: "Jl.Titi Pahlawan Gg.Pringgan, Lr.Murai",
+                product: [
+                    {
+                        product_id: product1.id,
+                        quantity: 10
+                    },
+                    {
+                        product_id: product2.id,
+                        quantity: 15
+                    }
+                ]
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(201);
+        expect(response.body.data).toBeDefined();
+    });
+
+    it("should reject if product_id is not retrive", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);            
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+
+        const response = await request(web).post("/api/orders")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                province: "Sumatera Utara",
+                city: "Medan",
+                district: "Marelan",
+                spesifict_address: "Jl.Titi Pahlawan Gg.Pringgan, Lr.Murai",
+                product: [
+                    {
+                        quantity: 10
+                    },
+                    {
+                        product_id: product2.id,
+                        quantity: 15
+                    }
+                ]
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it("should reject if product_id is not found", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);            
+        };
+
+        const response = await request(web).post("/api/orders")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                province: "Sumatera Utara",
+                city: "Medan",
+                district: "Marelan",
+                spesifict_address: "Jl.Titi Pahlawan Gg.Pringgan, Lr.Murai",
+                product: [
+                    {
+                        product_id: 9999,
+                        quantity: 10
+                    },
+                    {
+                        product_id: 8888,
+                        quantity: 15
+                    }
+                ]
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it("should reject stock product is not enough", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);            
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+
+        const response = await request(web).post("/api/orders")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                province: "Sumatera Utara",
+                city: "Medan",
+                district: "Marelan",
+                spesifict_address: "Jl.Titi Pahlawan Gg.Pringgan, Lr.Murai",
+                product: [
+                    {
+                        product_id: product1.id,
+                        quantity: 30
+                    },
+                    {
+                        product_id: product2.id,
+                        quantity: 30
+                    }
+                ]
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    });
+
+})

@@ -74,13 +74,22 @@ enum PaymentStatus {
   FAILED
 }
 
+enum OrderStatus {
+  PENDING
+  DELIVERED
+  CANCELLED
+}
+
 model Order {
-  id             Int           @id @default(autoincrement())
+  id             String        @id @db.VarChar(300)
   user_id        Int
   address        String        @db.Text
   total_price    Int
+  shipping_cost  Int?
+  shipping_name  String?
   payment_type   String?       @db.VarChar(50)
   payment_status PaymentStatus @default(PENDING)
+  status         OrderStatus   @default(PENDING)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -92,7 +101,7 @@ model Order {
 
 model OrderDetail {
   id         Int      @id @default(autoincrement())
-  order_id   Int
+  order_id   String
   product_id Int?
   quantity   Int      @db.SmallInt
   createdAt  DateTime @default(now())
