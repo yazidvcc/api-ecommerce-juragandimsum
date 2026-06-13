@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/auth-middleware.js";
 import productController from "../controller/product-controller.js";
 import roleMiddleware from "../middleware/role-middleware.js";
 import cartController from "../controller/cart-controller.js";
+import orderController from "../controller/order-controller.js";
 
 const protectedRouter = express.Router();
 
@@ -15,5 +16,7 @@ protectedRouter.delete("/products/:productId", roleMiddleware(["ADMIN"]),product
 protectedRouter.post("/carts", roleMiddleware(["CUSTOMER"]) ,cartController.create);
 protectedRouter.get("/carts", roleMiddleware(["CUSTOMER"]) ,cartController.get);
 protectedRouter.delete("/carts/:cartId", roleMiddleware(["CUSTOMER"]) ,cartController.remove);
+
+protectedRouter.post("/orders", roleMiddleware(["CUSTOMER"]) ,orderController.create);
 
 export default protectedRouter;
