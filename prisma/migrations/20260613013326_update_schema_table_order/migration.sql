@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `orders` ADD COLUMN `shipping_cost` INTEGER NULL,
+    ADD COLUMN `shipping_name` VARCHAR(191) NULL,
+    ADD COLUMN `status` ENUM('PENDING', 'DELIVERED', 'CANCELLED') NOT NULL DEFAULT 'PENDING';
