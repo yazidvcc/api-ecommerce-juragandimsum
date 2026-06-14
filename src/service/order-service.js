@@ -1,8 +1,9 @@
-import { createOrderValidation, createShippingCostOrderValidation } from "../validation/order-validation"
+import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation } from "../validation/order-validation"
 import validate from "../validation/validation"
 import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
 import ResponseError from "../error/response-error.js";
+import midtransClient from "midtrans-client";
 
 const create = async (request, userId) => {
 
@@ -85,17 +86,17 @@ const create = async (request, userId) => {
 };
 
 const shippingCost = async (request) => {
-    
+
     request = validate(createShippingCostOrderValidation, request);
 
-    const product = await prismaClient.order.findUnique({
+    const order = await prismaClient.order.findUnique({
         where: {
             id: request.order_id
         }
     });
 
-    if (!product) {
-        throw new ResponseError(404, "Product is not found");
+    if (!order) {
+        throw new ResponseError(404, "Order is not found");
     }
 
     delete request.order_id;
@@ -118,7 +119,101 @@ const shippingCost = async (request) => {
 
 }
 
+const tokenTransaction = async (orderId, userId) => {
+
+    orderId = validate(idOrderValidation, orderId);
+
+    const user = await prismaClient.user.findUnique({
+        where: {
+            id: userId
+        }
+    });
+
+    if (!user) {
+        throw new ResponseError(404, "User is not found");
+    }
+
+    const order = await prismaClient.order.findFirst({
+        where: {
+            id: orderId,
+            user_id: userId
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    phone: true
+                }
+            },
+            orderDetails: {
+                select: {
+                    id: true,
+                    product: {
+                        select: {
+                            id: true,
+                            name: true,
+                            price: true
+                        }
+                    },
+                    quantity: true
+                }
+            }
+        }
+    });
+
+    if (!order) {
+        throw new ResponseError(404, "Order is not found");
+    }
+
+    if (order.status === "DELIVERED" || order.status === "CANCELLED") {
+        throw new ResponseError(400, "the order has been processed")
+    }
+
+    const itemDetails = order.orderDetails.map(detail => ({
+        id: detail.product.id.toString(),
+        price: detail.product.price,
+        quantity: detail.quantity,
+        name: detail.product.name
+    }));
+
+    if (order.shipping_cost) {
+        itemDetails.push({
+            id: "SHIPPING",
+            price: order.shipping_cost,
+            quantity: 1,
+            name: order.shipping_name || "Shipping"
+        });
+    }
+
+    let parameter = {
+        "transaction_details": {
+            "order_id": order.id,
+            "gross_amount": order.total_price + (order.shipping_cost || 0)
+        },
+        "credit_card": {
+            "secure": true
+        },
+        "item_details": itemDetails,
+        "customer_details": {
+            "first_name": order.user.name,
+            "phone": order.user.phone
+        }
+    }
+
+    let snap = new midtransClient.Snap({
+        isProduction: false,
+        serverKey: process.env.MIDTRANS_API_KEY
+    });
+
+    const response = await snap.createTransaction(parameter);
+
+    return response;
+
+}
+
 export default {
     create,
-    shippingCost
+    shippingCost,
+    tokenTransaction
 };
