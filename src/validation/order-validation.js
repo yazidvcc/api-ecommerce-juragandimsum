@@ -18,7 +18,10 @@ const createShippingCostOrderValidation = Joi.object({
     shipping_name: Joi.string().required()
 });
 
+const idOrderValidation = Joi.string().required();
+
 export {
     createOrderValidation,
-    createShippingCostOrderValidation
+    createShippingCostOrderValidation,
+    idOrderValidation
 };

@@ -1,6 +1,6 @@
 import prismaClient from "../application/database";
 import request from "supertest";
-import { createOrderTest, createProductImageTest, createUserTest, loginUserTest } from "./test-util";
+import { createOrderTest, createProductImageTest, createUserTest, loginUserTest, setShippingCost } from "./test-util";
 import { web } from "../application/web";
 import { depth } from "../application/logging";
 
@@ -349,5 +349,98 @@ describe("POST /api/orders/orderId/shipping-cost", () => {
 
         expect(response.status).toBe(404);
         expect(response.body.errors).toBeDefined()
+    })
+})
+
+describe("POST /api/orders/orderId/payment", () => {
+
+    beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+        await createUserTest("yazid", "0895600436144", "passwordd", "CUSTOMER");
+    });
+
+    it("should success get token transaction", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+
+        const order = await createOrderTest(customerLogin.body.data.accessToken, { product_id: product1.id, quantity: 10 }, { product_id: product2.id, quantity: 10 });
+        const shippingCost = await setShippingCost(order.body.data.id, adminLogin.body.data.accessToken, 28000);
+
+        const response = await request(web).post(`/api/orders/${order.body.data.id}/payment`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.body.data.token).toBeDefined();
+        expect(response.body.data.redirect_url).toBeDefined();
+
+    })
+
+    it("should reject if order id not found", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        const response = await request(web).post(`/api/orders/9999/payment`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if the user pays for an order that is not his ", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        await createUserTest("yazid", "0895600436145", "passwordd", "CUSTOMER");
+        const customer2Login = await loginUserTest("0895600436145", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+
+        const order = await createOrderTest(customerLogin.body.data.accessToken, { product_id: product1.id, quantity: 10 }, { product_id: product2.id, quantity: 10 });
+        const shippingCost = await setShippingCost(order.body.data.id, adminLogin.body.data.accessToken, 28000);
+
+        const response = await request(web).post(`/api/orders/${order.body.data.id}/payment`)
+            .set("authorization", `Bearer ${customer2Login.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+
     })
 })

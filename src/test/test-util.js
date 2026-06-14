@@ -93,6 +93,18 @@ const createOrderTest = async (accessToken, ...products) => {
 
 }
 
+const setShippingCost = async (orderId, accessToken, shippingCost) => {
+
+    return await request(web).post(`/api/orders/${orderId}/shipping-cost`)
+        .set("authorization", `Bearer ${accessToken}`)
+        .set("Content-Type", "application/json")
+        .send({
+            shipping_cost: shippingCost,
+            shipping_name: "Bus"
+        });
+    
+}
+
 export {
     createUserTest,
     loginUserTest,
@@ -100,5 +112,6 @@ export {
     createProductImageTest,
     createCartTest,
     getCartTest,
-    createOrderTest
+    createOrderTest,
+    setShippingCost
 };

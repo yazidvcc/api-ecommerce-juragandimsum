@@ -27,7 +27,21 @@ const shippingCost = async (req, res, next) => {
 
 };
 
+const tokenTransaction = async (req, res, next) => {
+    
+    try {
+        const result = await orderService.tokenTransaction(req.params.orderId, req.user.id);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+
+};
+
 export default {
     create,
-    shippingCost
+    shippingCost,
+    tokenTransaction
 };
