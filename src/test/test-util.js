@@ -52,7 +52,7 @@ const createProductImageTest = async (nameProduct, accessToken) => {
         .field("stock", 20)
         .attach("photo", __dirname + "/product_dimsum/image.png")
         .attach("photo", __dirname + "/product_dimsum/image2.png");
-        
+
 }
 
 const createCartTest = async (userId, productId, quantity = 5) => {
@@ -68,7 +68,7 @@ const createCartTest = async (userId, productId, quantity = 5) => {
 }
 
 const getCartTest = async (userId) => {
-    
+
     return prismaClient.cart.findFirst({
         where: {
             user_id: userId
@@ -77,11 +77,28 @@ const getCartTest = async (userId) => {
 
 };
 
+const createOrderTest = async (accessToken, ...products) => {
+
+    return await request(web).post("/api/orders")
+        .set("authorization", `Bearer ${accessToken}`)
+        .set("Content-Type", "application/json")
+        .send({
+            province: "Sumatera Utara",
+            city: "Medan",
+            district: "Marelan",
+            postal_code: 20250,
+            spesifict_address: "Jl.Titi Pahlawan Gg.Pringgan, Lr.Murai",
+            product: products
+        });
+
+}
+
 export {
     createUserTest,
     loginUserTest,
     createProductTest,
     createProductImageTest,
     createCartTest,
-    getCartTest
+    getCartTest,
+    createOrderTest
 };

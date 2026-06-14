@@ -1,4 +1,4 @@
-import { createOrderValidation } from "../validation/order-validation"
+import { createOrderValidation, createShippingCostOrderValidation } from "../validation/order-validation"
 import validate from "../validation/validation"
 import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
@@ -84,6 +84,41 @@ const create = async (request, userId) => {
 
 };
 
+const shippingCost = async (request) => {
+    
+    request = validate(createShippingCostOrderValidation, request);
+
+    const product = await prismaClient.order.findUnique({
+        where: {
+            id: request.order_id
+        }
+    });
+
+    if (!product) {
+        throw new ResponseError(404, "Product is not found");
+    }
+
+    delete request.order_id;
+
+    return await prismaClient.order.update({
+        where: {
+            id: product.id
+        },
+        data: request,
+        select: {
+            id: true,
+            user_id: true,
+            address: true,
+            total_price: true,
+            shipping_cost: true,
+            shipping_name: true,
+            status: true
+        }
+    });
+
+}
+
 export default {
-    create
+    create,
+    shippingCost
 };
