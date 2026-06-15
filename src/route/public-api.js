@@ -3,6 +3,7 @@ import userController from "../controller/user-controller.js";
 import authController from "../controller/auth-controller.js";
 import productController from "../controller/product-controller.js";
 import addressContoller from "../controller/address-contoller.js";
+import orderController from "../controller/order-controller.js";
 
 const publicRouter = express.Router();
 
@@ -19,5 +20,7 @@ publicRouter.get("/address/province", addressContoller.province);
 publicRouter.get("/address/city/:provinceId", addressContoller.city);
 publicRouter.get("/address/district/:cityId", addressContoller.district);
 publicRouter.get("/address/subdistrict/:districtId", addressContoller.subdistrict);
+
+publicRouter.post("/orders/payment-notification-handler", orderController.getNotification)
 
 export default publicRouter;

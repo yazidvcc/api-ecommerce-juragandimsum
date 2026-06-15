@@ -4,6 +4,7 @@ import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
 import ResponseError from "../error/response-error.js";
 import midtransClient from "midtrans-client";
+import crypto from "crypto";
 
 const create = async (request, userId) => {
 
@@ -212,8 +213,130 @@ const tokenTransaction = async (orderId, userId) => {
 
 }
 
+const getNotification = async (request) => {
+
+    const hashSignatureKey = crypto
+        .createHash('sha512')
+        .update(request.order_id + request.status_code + request.gross_amount + process.env.MIDTRANS_API_KEY)
+        .digest('hex');
+
+    if (hashSignatureKey !== request.signature_key) {
+        throw new ResponseError(403, "Invalid signature key");
+    }
+
+    const order = await prismaClient.order.findUnique({
+        where: {
+            id: request.order_id
+        }
+    });
+
+    if (!order) {
+        throw new ResponseError(404, "Order not found");
+    }
+
+    if (order.payment_status === "SUCCESS" || order.payment_status === "FAILED") {
+        return {
+            message: "Notification has been processed previously"
+        };
+    }
+
+    const transactionStatus = request.transaction_status;
+    const fraudStatus = request.fraud_status;
+
+    if (transactionStatus === "capture" || transactionStatus === "settlement") {
+        if (transactionStatus === "capture" && fraudStatus !== "accept") {
+            await prismaClient.$transaction(async (tx) => {
+                await tx.order.update({
+                    where: { id: order.id },
+                    data: {
+                        payment_type: request.payment_type,
+                        payment_status: "FAILED",
+                        status: "CANCELLED"
+                    }
+                });
+
+                await restoreStock(tx, order.id);
+            });
+
+            return {
+                message: "Transaction flagged as fraud, order cancelled"
+            };
+        }
+
+        await prismaClient.order.update({
+            where: { id: order.id },
+            data: {
+                payment_type: request.payment_type,
+                payment_status: "SUCCESS"
+            }
+        });
+
+        return {
+            message: "Payment successful"
+        };
+
+    } else if (transactionStatus === "pending") {
+        await prismaClient.order.update({
+            where: { id: order.id },
+            data: {
+                payment_type: request.payment_type,
+                payment_status: "PENDING"
+            }
+        });
+
+        return {
+            message: "Payment pending"
+        };
+
+    } else if (transactionStatus === "deny" || transactionStatus === "cancel" || transactionStatus === "expire") {
+        await prismaClient.$transaction(async (tx) => {
+            await tx.order.update({
+                where: { id: order.id },
+                data: {
+                    payment_type: request.payment_type,
+                    payment_status: "FAILED",
+                    status: "CANCELLED"
+                }
+            });
+
+            await restoreStock(tx, order.id);
+        });
+
+        return {
+            message: `Payment ${transactionStatus}`
+        };
+    }
+
+    throw new ResponseError(400, `Unhandled transaction status: ${transactionStatus}`);
+
+}
+
+const restoreStock = async (tx, orderId) => {
+    const orderDetails = await tx.orderDetail.findMany({
+        where: { order_id: orderId },
+        select: {
+            product_id: true,
+            quantity: true
+        }
+    });
+
+    for (const detail of orderDetails) {
+        if (detail.product_id) {
+            await tx.product.update({
+                where: { id: detail.product_id },
+                data: {
+                    stock: {
+                        increment: detail.quantity
+                    }
+                }
+            });
+        }
+    }
+}
+
 export default {
     create,
     shippingCost,
-    tokenTransaction
+    tokenTransaction,
+    getNotification
 };
