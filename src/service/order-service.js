@@ -104,7 +104,7 @@ const shippingCost = async (request) => {
 
     return await prismaClient.order.update({
         where: {
-            id: product.id
+            id: order.id
         },
         data: request,
         select: {
@@ -356,12 +356,12 @@ const search = async (request, user) => {
     if (request.phone_user) {
         filters.push({
             user: {
-                email: request.phone_user
+                phone: request.phone_user
             }
         })
     }
 
-    if (request.phone_user) {
+    if (request.name_user) {
         filters.push({
             user: {
                 name: request.name_user
@@ -410,6 +410,11 @@ const search = async (request, user) => {
     const orders = await prismaClient.order.findMany({
         where: {
             AND: filters
+        },
+        skip: skip,
+        take: request.size,
+        orderBy: {
+            createdAt: "desc"
         },
         select: {
             id: true,
