@@ -1,4 +1,4 @@
-import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation } from "../validation/order-validation"
+import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation } from "../validation/order-validation"
 import validate from "../validation/validation"
 import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
@@ -334,9 +334,133 @@ const restoreStock = async (tx, orderId) => {
     }
 }
 
+const search = async (request, user) => {
+    
+    request = validate(searchOrderValidation, request);
+
+    const skip = request.size * (request.page - 1);
+    const filters = [];
+
+    if (user.role === "CUSTOMER") {
+        filters.push({
+            user_id: user.id
+        })
+    }
+
+    if (request.order_id) {
+        filters.push({
+            id: request.order_id
+        })
+    }
+
+    if (request.phone_user) {
+        filters.push({
+            user: {
+                email: request.phone_user
+            }
+        })
+    }
+
+    if (request.phone_user) {
+        filters.push({
+            user: {
+                name: request.name_user
+            }
+        })
+    }
+
+    if (request.shipping_name) {
+        filters.push({
+            shipping_name: request.shipping_name
+        })
+    }
+
+    if (request.status) {
+        filters.push({
+            status: request.status
+        })
+    }
+
+    if (request.payment_status) {
+        filters.push({
+            payment_status: request.payment_status
+        })
+    }
+
+    if (request.date_start) {
+        let startDate = new Date(request.date_start);
+        startDate.setHours(0, 0, 0, 0);
+        filters.push({
+            createdAt: {
+                gte: startDate.toISOString()
+            }
+        })
+    }
+
+    if (request.date_end) {
+        let endDate = new Date(request.date_end);
+        endDate.setHours(23, 59, 59, 999);
+        filters.push({
+            createdAt: {
+                lte: endDate.toISOString()
+            }
+        })
+    }
+
+    const orders = await prismaClient.order.findMany({
+        where: {
+            AND: filters
+        },
+        select: {
+            id: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    phone: true
+                }
+            },
+            address: true,
+            total_price: true,
+            shipping_cost: true,
+            shipping_name: true,
+            payment_status: true,
+            status: true,
+            orderDetails: {
+                select: {
+                    product: {
+                        select: {
+                            name: true,
+                            price: true
+                        }
+                    },
+                    quantity: true
+                }
+            }
+        }
+    });
+
+    const totalItems = await prismaClient.order.count({
+        where: {
+            AND: filters
+        }
+    });
+
+    return {
+        data: orders,
+        paging: {
+            page: request.page,
+            total_items: totalItems,
+            total_page: Math.ceil(totalItems/request.size)
+        }
+    };
+
+}
+
 export default {
     create,
     shippingCost,
     tokenTransaction,
-    getNotification
+    getNotification,
+    search
 };
