@@ -275,6 +275,15 @@ const remove = async (productId) => {
         throw new ResponseError(404, "product not found")
     };
 
+    const bucket = process.env.MINIO_BUCKET_PRODUCT;
+    await Promise.all(product.productPhoto.map(async (photo) => {
+        try {
+            await minioClient.removeObject(bucket, photo.url);
+        } catch (err) {
+            console.error(`Failed to delete MinIO object: ${photo.url}`, err);
+        }
+    }));
+
     await prismaClient.product.delete({
         where: {
             id: productId
