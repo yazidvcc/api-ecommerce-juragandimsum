@@ -125,7 +125,7 @@ const update = async (request) => {
 
     request = validate(updateProductValidation, request);
 
-    if (!request.name && !request.description && !request.price && !request.stock) {
+    if (request.name === undefined && request.description === undefined && request.price === undefined && request.stock === undefined) {
         throw new ResponseError(400, "not receiving any data")
     }
 
