@@ -10,7 +10,6 @@ const publicRouter = express.Router();
 publicRouter.post("/users", userController.create);
 publicRouter.post("/users/login", userController.login);
 publicRouter.post("/users/logout", userController.logout);
-publicRouter.post("/users/logout", userController.logout);
 publicRouter.post("/users/refresh", authController.refresh);
 
 publicRouter.get("/products", productController.search);

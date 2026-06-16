@@ -13,7 +13,7 @@ const create = async (request) => {
 
     const countInDatabase = await prismaClient.user.count({
         where: {
-            phone: request.phone
+            phone: phone
         }
     });
 
@@ -52,7 +52,7 @@ const login = async (request) => {
     });
 
     if (!user) {
-        await bcrypt.compare(password, '$2b$12$dummyhashuntuktimingatack000000')
+        await bcrypt.compare(request.password, '$2b$12$dummyhashuntuktimingatack000000')
         throw new ResponseError(401, "phone or password is wrong");
     };
 
