@@ -26,7 +26,7 @@ const searchOrderValidation = Joi.object({
     name_user: Joi.string().optional(),
     address: Joi.string().optional(),
     shipping_name: Joi.string().optional(),
-    status: Joi.string().valid("PENDING", "DELIVERED", "CANCELLED").optional(),
+    status: Joi.string().valid("PENDING", "SHIPPED", "DELIVERED", "CANCELLED").optional(),
     payment_status: Joi.string().valid("PENDING", "SUCCESS", "FAILED").optional(),
     date_start: Joi.string().optional(),
     date_end: Joi.string().optional(),
