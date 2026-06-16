@@ -1,7 +1,7 @@
 import userService from "../service/user-service.js"
 
 const create = async (req, res, next) => {
-    
+
     try {
         const result = await userService.create(req.body);
         res.status(201).json({
@@ -14,7 +14,7 @@ const create = async (req, res, next) => {
 }
 
 const login = async (req, res, next) => {
-    
+
     try {
         const result = await userService.login(req.body);
         res.cookie("refreshToken", result.refreshToken, {
@@ -37,11 +37,16 @@ const login = async (req, res, next) => {
 }
 
 const logout = async (req, res, next) => {
-    
+
     try {
         const token = req.cookies?.refreshToken;
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict"
+        })
         if (token) {
-            await userService.logout(token)
+            await userService.logout(token);
         };
         res.status(200).json({
             data: "OK"
