@@ -53,9 +53,21 @@ const getNotification = async (req, res, next) => {
 
 };
 
+const search = async (req, res, next) => {
+    
+    try {
+        const result = await orderService.search(req.query, req.user);
+        res.status(200).json(result);
+    } catch (e) {
+        next(e);
+    }
+
+};
+
 export default {
     create,
     shippingCost,
     tokenTransaction,
-    getNotification
+    getNotification,
+    search
 };

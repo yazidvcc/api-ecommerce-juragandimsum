@@ -444,3 +444,81 @@ describe("POST /api/orders/orderId/payment", () => {
 
     })
 })
+
+describe("GET /api/orders", () => {
+
+    beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+        await createUserTest("yazid", "0895600436144", "passwordd", "CUSTOMER");
+    });
+
+    it("should success search order by customer", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+        
+        const order = await createOrderTest(customerLogin.body.data.accessToken, { product_id: product1.id, quantity: 10 }, { product_id: product2.id, quantity: 10 });
+        await setShippingCost(order.body.data.id, adminLogin.body.data.accessToken, 28000);
+
+        const response = await request(web).get("/api/orders")
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.length).toBe(1);
+
+    })
+
+    it("should success search order by admin", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+        
+        const order = await createOrderTest(customerLogin.body.data.accessToken, { product_id: product1.id, quantity: 10 }, { product_id: product2.id, quantity: 10 });
+        await setShippingCost(order.body.data.id, adminLogin.body.data.accessToken, 28000);
+
+        const response = await request(web).get("/api/orders")
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.length).toBe(1);
+
+    })
+
+})

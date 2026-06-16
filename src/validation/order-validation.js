@@ -20,8 +20,23 @@ const createShippingCostOrderValidation = Joi.object({
 
 const idOrderValidation = Joi.string().required();
 
+const searchOrderValidation = Joi.object({
+    order_id: Joi.string().optional(),
+    phone_user: Joi.string().optional(),
+    name_user: Joi.string().optional(),
+    address: Joi.string().optional(),
+    shipping_name: Joi.string().optional(),
+    status: Joi.string().valid("PENDING", "DELIVERED", "CANCELLED").optional(),
+    payment_status: Joi.string().valid("PENDING", "SUCCESS", "FAILED").optional(),
+    date_start: Joi.string().optional(),
+    date_end: Joi.string().optional(),
+    page: Joi.number().min(1).default(1),
+    size: Joi.number().min(1).max(100).default(10)
+})
+
 export {
     createOrderValidation,
     createShippingCostOrderValidation,
-    idOrderValidation
+    idOrderValidation,
+    searchOrderValidation
 };

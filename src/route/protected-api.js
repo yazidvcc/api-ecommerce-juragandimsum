@@ -20,5 +20,6 @@ protectedRouter.delete("/carts/:cartId", roleMiddleware(["CUSTOMER"]) ,cartContr
 protectedRouter.post("/orders", roleMiddleware(["CUSTOMER"]) ,orderController.create);
 protectedRouter.post("/orders/:orderId/shipping-cost", roleMiddleware(["ADMIN"]) ,orderController.shippingCost);
 protectedRouter.post("/orders/:orderId/payment", roleMiddleware(["CUSTOMER"]) ,orderController.tokenTransaction);
+protectedRouter.get("/orders", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.search);
 
 export default protectedRouter;
