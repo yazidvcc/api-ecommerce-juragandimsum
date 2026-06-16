@@ -64,10 +64,25 @@ const search = async (req, res, next) => {
 
 };
 
+const handleStatus = async (req, res, next) => {
+    
+    try {
+        req.body.order_id = req.params.orderId;
+        const result = await orderService.handleStatus(req.body, req.user);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+
+};
+
 export default {
     create,
     shippingCost,
     tokenTransaction,
     getNotification,
-    search
+    search,
+    handleStatus
 };

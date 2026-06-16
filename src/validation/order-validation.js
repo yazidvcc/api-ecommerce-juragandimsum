@@ -32,11 +32,17 @@ const searchOrderValidation = Joi.object({
     date_end: Joi.string().optional(),
     page: Joi.number().min(1).default(1),
     size: Joi.number().min(1).max(100).default(10)
-})
+});
+
+const updateStatusOrderValidation = Joi.object({
+    order_id: Joi.string().required(),
+    status: Joi.string().valid("PENDING", "SHIPPED", "DELIVERED", "CANCELLED").required()
+});
 
 export {
     createOrderValidation,
     createShippingCostOrderValidation,
     idOrderValidation,
-    searchOrderValidation
+    searchOrderValidation,
+    updateStatusOrderValidation
 };

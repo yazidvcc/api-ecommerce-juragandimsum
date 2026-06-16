@@ -21,5 +21,6 @@ protectedRouter.post("/orders", roleMiddleware(["CUSTOMER"]) ,orderController.cr
 protectedRouter.post("/orders/:orderId/shipping-cost", roleMiddleware(["ADMIN"]) ,orderController.shippingCost);
 protectedRouter.post("/orders/:orderId/payment", roleMiddleware(["CUSTOMER"]) ,orderController.tokenTransaction);
 protectedRouter.get("/orders", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.search);
+protectedRouter.post("/orders/:orderId/status", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.handleStatus);
 
 export default protectedRouter;
