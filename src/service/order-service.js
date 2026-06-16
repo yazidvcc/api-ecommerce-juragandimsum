@@ -462,39 +462,47 @@ const search = async (request, user) => {
 
 }
 
-const handleStatus = async (request, user) => {
+const VALID_TRANSITIONS = {
+    "PENDING": ["SHIPPED", "CANCELLED"],
+    "SHIPPED": ["DELIVERED"],
+    "DELIVERED": [],
+    "CANCELLED": []
+};
 
+const handleStatus = async (request, user) => {
     request = validate(updateStatusOrderValidation, request);
 
     const order = await prismaClient.order.findFirst({
-        where: {
-            id: request.order_id
-        }
+        where: { id: request.order_id }
     });
 
     if (!order) {
         throw new ResponseError(404, "Order is not found");
     }
 
-    if (user.role === "CUSTOMER" && order.status === "SHIPPED") {
-        if (request.status !== "DELIVERED") {
-            throw new ResponseError(400, "request invalid")
+    if (request.status === "SHIPPED" && order.payment_status !== "SUCCESS") {
+        throw new ResponseError(400, "Cannot ship order: payment not completed");
+    }
+
+    const allowedNextStatus = VALID_TRANSITIONS[order.status];
+    if (!allowedNextStatus.includes(request.status)) {
+        throw new ResponseError(400, `Cannot change status from ${order.status} to ${request.status}`);
+    }
+
+    if (user.role === "CUSTOMER") {
+        if (order.user_id !== user.id) {
+            throw new ResponseError(403, "Not your order");
         }
-        return await prismaClient.order.update({
-            where: { id: request.order_id },
-            data: {
-                status: request.status
-            }
-        });
+        if (request.status !== "DELIVERED") {
+            throw new ResponseError(403, "Customer can only confirm delivery");
+        }
     }
 
     return await prismaClient.order.update({
         where: { id: request.order_id },
-        data: {
-            status: request.status
-        }
+        data: { status: request.status }
     });
-}
+};
 
 export default {
     create,
