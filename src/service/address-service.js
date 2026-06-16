@@ -1,4 +1,6 @@
 import ResponseError from "../error/response-error.js";
+import { idAddressValidation } from "../validation/address-validation.js";
+import validate from "../validation/validation.js";
 
 const province = async () => {
 
@@ -24,6 +26,8 @@ const province = async () => {
 
 const city = async (provinceId) => {
 
+    provinceId = validate(idAddressValidation, provinceId);
+
     const url = `https://rajaongkir.komerce.id/api/v1/destination/city/${provinceId}`;
     const options = {
         method: 'GET',
@@ -46,6 +50,8 @@ const city = async (provinceId) => {
 
 const district = async (cityId) => {
 
+    cityId = validate(idAddressValidation, cityId);
+
     const url = `https://rajaongkir.komerce.id/api/v1/destination/district/${cityId}`;
     const options = {
         method: 'GET',
@@ -67,6 +73,8 @@ const district = async (cityId) => {
 }
 
 const subdistrict = async (districtId) => {
+
+    districtId = validate(idAddressValidation, districtId);
 
     const url = `https://rajaongkir.komerce.id/api/v1/destination/sub-district/${districtId}`;
     const options = {
