@@ -171,6 +171,10 @@ const tokenTransaction = async (orderId, userId) => {
         throw new ResponseError(400, "the order has been processed")
     }
 
+    if (order.payment_status === "SUCCESS") {
+        throw new ResponseError(400, "Payment already completed for this order")
+    }
+
     const itemDetails = order.orderDetails.map(detail => ({
         id: detail.product.id.toString(),
         price: detail.product.price,
