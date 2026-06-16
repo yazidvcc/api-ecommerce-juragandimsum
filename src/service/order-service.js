@@ -361,6 +361,15 @@ const search = async (request, user) => {
         })
     }
 
+    if (request.address) {
+        filters.push({
+            address: {
+                contains: request.address
+            }
+        });
+    }
+
+
     if (request.name_user) {
         filters.push({
             user: {
