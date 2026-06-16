@@ -1,4 +1,4 @@
-import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation } from "../validation/order-validation"
+import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation, updateStatusOrderValidation } from "../validation/order-validation"
 import validate from "../validation/validation"
 import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
@@ -335,7 +335,7 @@ const restoreStock = async (tx, orderId) => {
 }
 
 const search = async (request, user) => {
-    
+
     request = validate(searchOrderValidation, request);
 
     const skip = request.size * (request.page - 1);
@@ -451,10 +451,44 @@ const search = async (request, user) => {
         paging: {
             page: request.page,
             total_items: totalItems,
-            total_page: Math.ceil(totalItems/request.size)
+            total_page: Math.ceil(totalItems / request.size)
         }
     };
 
+}
+
+const handleStatus = async (request, user) => {
+
+    request = validate(updateStatusOrderValidation, request);
+
+    const order = await prismaClient.order.findFirst({
+        where: {
+            id: request.order_id
+        }
+    });
+
+    if (!order) {
+        throw new ResponseError(404, "Order is not found");
+    }
+
+    if (user.role === "CUSTOMER" && order.status === "SHIPPED") {
+        if (request.status !== "DELIVERED") {
+            throw new ResponseError(400, "request invalid")
+        }
+        return await prismaClient.order.update({
+            where: { id: request.order_id },
+            data: {
+                status: request.status
+            }
+        });
+    }
+
+    return await prismaClient.order.update({
+        where: { id: request.order_id },
+        data: {
+            status: request.status
+        }
+    });
 }
 
 export default {
@@ -462,5 +496,6 @@ export default {
     shippingCost,
     tokenTransaction,
     getNotification,
-    search
+    search,
+    handleStatus
 };

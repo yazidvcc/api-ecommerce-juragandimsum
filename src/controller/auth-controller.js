@@ -24,7 +24,8 @@ const refresh = async (req, res, next) => {
         const payload = verifyRefreshToken(token);
         const newAccessToken = signAccessToken({
             id: payload.id,
-            phone: payload.phone
+            phone: payload.phone,
+            role: payload.role
         });
         
         return res.status(200).json({
