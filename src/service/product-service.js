@@ -265,13 +265,16 @@ const remove = async (productId) => {
 
     productId = validate(idProductValidation, productId);
 
-    const product = await prismaClient.product.count({
+    const product = await prismaClient.product.findUnique({
         where: {
             id: productId
+        },
+        include: {
+            productPhoto: true
         }
     });
 
-    if (product === 0) {
+    if (!product) {
         throw new ResponseError(404, "product not found")
     };
 
