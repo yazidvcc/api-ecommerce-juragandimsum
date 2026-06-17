@@ -26,7 +26,7 @@ describe("POST /api/users", () => {
 
         expect(response.status).toBe(201);
         expect(response.body.data.name).toBe("yazid khairul");
-        expect(response.body.data.phone).toBe("0895600436143");
+        expect(response.body.data.phone).toBe("62895600436143");
 
     });
 

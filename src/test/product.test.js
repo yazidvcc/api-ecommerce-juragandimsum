@@ -7,9 +7,11 @@ import { web } from "../application/web";
 describe("POST /api/products", () => {
 
     beforeEach(async () => {
-        await prismaClient.user.deleteMany();
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
         await prismaClient.productPhoto.deleteMany();
         await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
         await createUserTest("yazid", "0895600436143", "password", "ADMIN");
     })
 
@@ -123,6 +125,8 @@ describe("POST /api/products", () => {
 describe("PATCH /api/products/productId", () => {
 
     beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
         await prismaClient.user.deleteMany();
         await prismaClient.productPhoto.deleteMany();
         await prismaClient.product.deleteMany();
@@ -208,6 +212,8 @@ describe("PATCH /api/products/productId", () => {
 describe("GET /api/products", () => {
 
     beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
         await prismaClient.user.deleteMany();
         await prismaClient.productPhoto.deleteMany();
         await prismaClient.product.deleteMany();
@@ -238,6 +244,8 @@ describe("GET /api/products", () => {
 describe("GET /api/products/productId", () => {
 
     beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
         await prismaClient.user.deleteMany();
         await prismaClient.productPhoto.deleteMany();
         await prismaClient.product.deleteMany();
@@ -291,6 +299,8 @@ describe("GET /api/products/productId", () => {
 describe("DELETE /api/products/productId", () => {
 
     beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
         await prismaClient.user.deleteMany();
         await prismaClient.productPhoto.deleteMany();
         await prismaClient.product.deleteMany();
