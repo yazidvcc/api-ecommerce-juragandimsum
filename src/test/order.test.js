@@ -600,7 +600,7 @@ describe("POST /api/orders/orderId/status", () => {
             });
 
         const customerResponse = await request(web).post(`/api/orders/${order.body.data.id}/status`)
-            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
             .set("Content-Type", "application/json")
             .send({
                 status: "DELIVERED"
