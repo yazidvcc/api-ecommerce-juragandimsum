@@ -14,6 +14,7 @@ protectedRouter.patch("/products/:productId", roleMiddleware(["ADMIN"]),productC
 protectedRouter.delete("/products/:productId", roleMiddleware(["ADMIN"]),productController.remove);
 
 protectedRouter.post("/carts", roleMiddleware(["CUSTOMER"]) ,cartController.create);
+protectedRouter.patch("/carts/:cartId", roleMiddleware(["CUSTOMER"]),cartController.update);
 protectedRouter.get("/carts", roleMiddleware(["CUSTOMER"]) ,cartController.get);
 protectedRouter.delete("/carts/:cartId", roleMiddleware(["CUSTOMER"]) ,cartController.remove);
 

@@ -7,7 +7,13 @@ const createCartValidation = Joi.object({
 
 const idCartValidation = Joi.number().positive().required();
 
+const updateCartValidation = Joi.object({
+    cart_id: Joi.number().positive().required(),
+    quantity: Joi.number().min(1).positive().required()
+})
+
 export {
     createCartValidation,
-    idCartValidation
+    idCartValidation,
+    updateCartValidation
 };

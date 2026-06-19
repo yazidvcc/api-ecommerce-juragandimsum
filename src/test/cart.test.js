@@ -115,6 +115,104 @@ describe("POST /api/carts", () => {
     })
 })
 
+describe("PATCH /api/carts/cartId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.cart.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+        await createUserTest("yazid", "0895600436144", "passwordd", "CUSTOMER");
+    });
+
+    it("should success update quantity cart", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+        
+        let products = [];
+        for (let i = 1; i <= 5; i++) {
+            const product = await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+            products.push(product);
+        }
+
+        for (let i = 0; i < 3 && i < products.length; i++) {
+            await createCartTest(customerLogin.body.data.id, products[i].body.data.id);
+        }
+
+        const cart = await getCartTest(customerLogin.body.data.id);
+
+        const response = await request(web).patch(`/api/carts/${cart.id}`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                quantity: 10
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.id).toBe(cart.id);
+        expect(response.body.data.quantity).toBe(10);
+    })
+
+    it("should reject if quantity set 0", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+        
+        let products = [];
+        for (let i = 1; i <= 5; i++) {
+            const product = await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+            products.push(product);
+        }
+
+        for (let i = 0; i < 3 && i < products.length; i++) {
+            await createCartTest(customerLogin.body.data.id, products[i].body.data.id);
+        }
+
+        const cart = await getCartTest(customerLogin.body.data.id);
+
+        const response = await request(web).patch(`/api/carts/${cart.id}`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                quantity: 0
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if cart id invalid or not found", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+        
+        let products = [];
+        for (let i = 1; i <= 5; i++) {
+            const product = await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+            products.push(product);
+        }
+
+        for (let i = 0; i < 3 && i < products.length; i++) {
+            await createCartTest(customerLogin.body.data.id, products[i].body.data.id);
+        }
+
+        const response = await request(web).patch(`/api/carts/sembilan`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                quantity: 0
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+})
+
 describe("GET /api/carts", () => {
 
     beforeEach(async () => {
@@ -135,14 +233,9 @@ describe("GET /api/carts", () => {
             products.push(product);
         }
 
-        let count = 0
-        products.forEach(async product => {
-            count++;
-            if (count > 3) {
-                return
-            }
-            await createCartTest(customerLogin.body.data.id, product.body.data.id);
-        });
+        for (let i = 0; i < 3 && i < products.length; i++) {
+            await createCartTest(customerLogin.body.data.id, products[i].body.data.id);
+        }
 
         const response = await request(web).get("/api/carts")
             .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`);
@@ -193,14 +286,9 @@ describe("DELETE /api/carts/cartId", () => {
             products.push(product);
         }
 
-        let count = 0
-        products.forEach(async product => {
-            count++;
-            if (count > 3) {
-                return
-            }
-            await createCartTest(customerLogin.body.data.id, product.body.data.id);
-        });
+        for (let i = 0; i < 3 && i < products.length; i++) {
+            await createCartTest(customerLogin.body.data.id, products[i].body.data.id);
+        }
 
         const cart = await getCartTest(customerLogin.body.data.id);
 
