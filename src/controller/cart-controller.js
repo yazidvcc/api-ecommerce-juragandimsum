@@ -13,6 +13,20 @@ const create = async (req, res, next) => {
 
 };
 
+const update = async (req, res, next) => {
+    
+    try {
+        req.body.cart_id = parseInt(req.params.cartId);
+        const result = await cartService.update(req.body, req.user.id);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+
+};
+
 const get = async (req, res, next) => {
     
     try {
@@ -42,6 +56,7 @@ const remove = async (req, res, next) => {
 
 export default {
     create,
+    update,
     get,
     remove
 };
