@@ -25,6 +25,7 @@ protectedRouter.post("/orders/:orderId/payment", roleMiddleware(["CUSTOMER"]) ,o
 protectedRouter.get("/orders", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.search);
 protectedRouter.post("/orders/:orderId/status", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.handleStatus);
 
-protectedRouter.post("/banners", roleMiddleware(["ADMIN"]), bannerController.create)
+protectedRouter.post("/banners", roleMiddleware(["ADMIN"]), bannerController.create);
+protectedRouter.delete("/banners/:idBanner", roleMiddleware(["ADMIN"]), bannerController.remove);
 
 export default protectedRouter;

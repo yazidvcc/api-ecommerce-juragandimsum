@@ -112,7 +112,7 @@ const createBannerTest = async (accessToken, name) => {
         .set("Content-Type", "multipart/form-data")
         .field({
             url: "https://localhost:9000",
-            name: `promo ${name}` 
+            name: name 
         })
         .attach("banner", __dirname + "/product_dimsum/image.png");
 

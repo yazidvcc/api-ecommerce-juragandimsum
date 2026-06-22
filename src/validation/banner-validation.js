@@ -5,6 +5,9 @@ const urlValidation = Joi.object({
     name: Joi.string().optional(),
 })
 
+const idBannerValidation = Joi.number().positive().required();
+
 export {
-    urlValidation
+    urlValidation,
+    idBannerValidation
 }
