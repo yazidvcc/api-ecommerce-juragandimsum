@@ -102,7 +102,21 @@ const setShippingCost = async (orderId, accessToken, shippingCost) => {
             shipping_cost: shippingCost,
             shipping_name: "Bus"
         });
-    
+
+}
+
+const createBannerTest = async (accessToken, name) => {
+
+    const response = await request(web).post("/api/banners")
+        .set("authorization", `Bearer ${accessToken}`)
+        .set("Content-Type", "multipart/form-data")
+        .field({
+            url: "https://localhost:9000",
+            name: `promo ${name}` 
+        })
+        .attach("banner", __dirname + "/product_dimsum/image.png");
+
+    return response.body.data;
 }
 
 export {
@@ -113,5 +127,6 @@ export {
     createCartTest,
     getCartTest,
     createOrderTest,
-    setShippingCost
+    setShippingCost,
+    createBannerTest
 };

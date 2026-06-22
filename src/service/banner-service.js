@@ -58,6 +58,26 @@ const create = async (file, requestBody) => {
 
 }
 
+const search = async () => {
+    
+    const banners = await prismaClient.banner.findMany();
+    const bucket = process.env.MINIO_BUCKET_BANNER;
+
+    return await Promise.all(banners.map(async (banner) => {
+        const presignedUrl = await minioClient.presignedGetObject(
+            bucket,
+            banner.path,
+            60 * 60
+        );
+        return {
+            ...banner,
+            path: presignedUrl
+        }
+    }));
+
+}
+
 export default {
-    create
+    create,
+    search
 }
