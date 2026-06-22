@@ -9,12 +9,18 @@ const minioClient = new Minio.Client({
 });
 
 async function initBucket() {
-    const bucket = process.env.MINIO_BUCKET_PRODUCT;
-    const exist = await minioClient.bucketExists(bucket);
+    const bucketProduct = process.env.MINIO_BUCKET_PRODUCT;
+    const bucketBanner = process.env.MINIO_BUCKET_BANNER;
+    const isBucketProductExist = await minioClient.bucketExists(bucketProduct);
+    const isBucketBannerExist = await minioClient.bucketExists(bucketBanner);
 
-    if (!exist) {
-        await minioClient.makeBucket(bucket, 'ap-southeast-1');
-        console.log(`bucket ${bucket} created`);
+    if (!isBucketProductExist) {
+        await minioClient.makeBucket(bucketProduct, 'ap-southeast-1');
+        console.log(`bucket ${bucketProduct} created`);
+    }
+    if (!isBucketBannerExist) {
+        await minioClient.makeBucket(bucketBanner, 'ap-southeast-1');
+        console.log(`bucket ${bucketBanner} created`);
     }
 };
 
