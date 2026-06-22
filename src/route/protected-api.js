@@ -4,6 +4,7 @@ import productController from "../controller/product-controller.js";
 import roleMiddleware from "../middleware/role-middleware.js";
 import cartController from "../controller/cart-controller.js";
 import orderController from "../controller/order-controller.js";
+import bannerController from "../controller/banner-controller.js";
 
 const protectedRouter = express.Router();
 
@@ -23,5 +24,7 @@ protectedRouter.post("/orders/:orderId/shipping-cost", roleMiddleware(["ADMIN"])
 protectedRouter.post("/orders/:orderId/payment", roleMiddleware(["CUSTOMER"]) ,orderController.tokenTransaction);
 protectedRouter.get("/orders", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.search);
 protectedRouter.post("/orders/:orderId/status", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.handleStatus);
+
+protectedRouter.post("/banners", roleMiddleware(["ADMIN"]), bannerController.create)
 
 export default protectedRouter;
