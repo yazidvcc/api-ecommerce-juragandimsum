@@ -1,8 +1,8 @@
-import prismaClient from "../application/database";
+import prismaClient from "../application/database.js";
 import request from "supertest";
-import { createOrderTest, createProductImageTest, createUserTest, loginUserTest, setShippingCost } from "./test-util";
-import { web } from "../application/web";
-import { depth } from "../application/logging";
+import { createOrderTest, createProductImageTest, createUserTest, loginUserTest, setShippingCost } from "./test-util.js";
+import { web } from "../application/web.js";
+import { depth } from "../application/logging.js";
 
 describe("POST /api/orders", () => {
 
@@ -394,7 +394,7 @@ describe("POST /api/orders/orderId/payment", () => {
         expect(response.body.data.token).toBeDefined();
         expect(response.body.data.redirect_url).toBeDefined();
 
-    })
+    }, 5000)
 
     it("should reject if order id not found", async () => {
         const adminLogin = await loginUserTest("0895600436143", "password");

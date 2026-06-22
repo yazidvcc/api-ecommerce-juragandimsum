@@ -16,7 +16,7 @@ const updateProductValidation = Joi.object({
 })
 
 const searchProductValidation = Joi.object({
-    name: Joi.string().max(100).optional(),
+    name: Joi.string().max(100).optional().allow(''),
     size: Joi.number().min(1).max(20).default(10).optional(),
     page: Joi.number().min(1).default(1).optional()
 });

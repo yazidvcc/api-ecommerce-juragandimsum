@@ -1,7 +1,7 @@
-import prismaClient from "../application/database";
+import prismaClient from "../application/database.js";
 import minioClient from "../application/minio.js";
-import ResponseError from "../error/response-error";
-import { createCartValidation, idCartValidation, updateCartValidation } from "../validation/cart-validation";
+import ResponseError from "../error/response-error.js";
+import { createCartValidation, idCartValidation, updateCartValidation } from "../validation/cart-validation.js";
 import validate from "../validation/validation.js";
 
 const create = async (request, userId) => {
@@ -81,6 +81,7 @@ const get = async (userId) => {
             quantity: true,
             product: {
                 select: {
+                    id: true,
                     name: true,
                     price: true,
                     productPhoto: {
@@ -99,6 +100,7 @@ const get = async (userId) => {
             return {
                 id: cart.id,
                 quantity: cart.quantity,
+                product_id: cart.product.id,
                 product_name: cart.product.name,
                 product_price: cart.product.price,
                 product_photo_url: null
@@ -111,6 +113,7 @@ const get = async (userId) => {
         return {
             id: cart.id,
             quantity: cart.quantity,
+            product_id: cart.product.id,
             product_name: cart.product.name,
             product_price: cart.product.price,
             product_photo_url: presignedUrl

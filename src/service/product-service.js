@@ -1,10 +1,10 @@
-import prismaClient from "../application/database";
-import ResponseError from "../error/response-error";
-import { createProductValidation, idProductValidation, searchProductValidation, updateProductValidation } from "../validation/product-validation";
-import validate from "../validation/validation";
+import prismaClient from "../application/database.js";
+import ResponseError from "../error/response-error.js";
+import { createProductValidation, idProductValidation, searchProductValidation, updateProductValidation } from "../validation/product-validation.js";
+import validate from "../validation/validation.js";
 import path from "path";
 import { v4 as uuid } from "uuid";
-import minioClient from "../application/minio";
+import minioClient from "../application/minio.js";
 
 const create = async (requestBody, requestFile) => {
 

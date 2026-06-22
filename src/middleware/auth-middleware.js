@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { verifyAccessToken } from "../application/token";
+import { verifyAccessToken } from "../application/token.js";
 
 const authMiddleware = (req, res, next) => {
 
