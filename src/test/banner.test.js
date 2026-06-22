@@ -1,7 +1,7 @@
 import prismaClient from "../application/database";
 import request from "supertest";
 import { web } from "../application/web";
-import { createUserTest, loginUserTest } from "./test-util";
+import { createBannerTest, createUserTest, loginUserTest } from "./test-util";
 import { depth } from "../application/logging";
 
 describe("POST /api/banners", () => {
@@ -91,4 +91,28 @@ describe("POST /api/banners", () => {
         expect(response2.status).toBe(400);
         expect(response2.body.errors).toBeDefined()
     })
+})
+
+describe("GET /api/banners", () => {
+
+    beforeEach(async () => {
+        await prismaClient.banner.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    });
+
+    it("should success search banner", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+
+        for (let i = 1; i < 6; i++) {   
+            await createBannerTest(adminLogin.body.data.accessToken, i)
+        }
+
+        const response = await request(web).get("/api/banners");
+            
+        depth(response.body.data)
+        expect(response.status).toBe(200)
+        expect(response.body.data.length).toBe(5);
+    })
+
 })

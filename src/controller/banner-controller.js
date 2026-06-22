@@ -13,6 +13,19 @@ const create = async (req, res, next) => {
 
 }
 
+const search = async (req, res, next) => {
+    
+    try {
+        const result = await bannerService.search();
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 export default {
-    create
+    create,
+    search
 }
