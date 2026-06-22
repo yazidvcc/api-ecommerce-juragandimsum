@@ -1,6 +1,6 @@
 import prismaClient from "../application/database";
 import ResponseError from "../error/response-error";
-import { urlValidation } from "../validation/banner-validation";
+import { idBannerValidation, urlValidation } from "../validation/banner-validation";
 import validate from "../validation/validation";
 import { v4 as uuid } from "uuid";
 import path from "path";
@@ -77,7 +77,34 @@ const search = async () => {
 
 }
 
+const remove = async (idBanner) => {
+    
+    idBanner = validate(idBannerValidation, idBanner);
+
+    const banner = await prismaClient.banner.findUnique({
+        where: { id: idBanner }
+    });
+
+    if (!banner) {
+        throw new ResponseError(404, "Banner is not found");
+    }
+
+    try {
+        const bucket = process.env.MINIO_BUCKET_BANNER;
+        await minioClient.removeObject(bucket, banner.path);
+    } catch (e) {
+        throw new ResponseError(500, "Failed to delete object")
+    }
+
+    await prismaClient.banner.delete({
+        where: { id: idBanner }
+    });
+
+    return "OK";
+}
+
 export default {
     create,
-    search
+    search,
+    remove
 }

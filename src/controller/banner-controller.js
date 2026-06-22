@@ -25,7 +25,21 @@ const search = async (req, res, next) => {
     }
 }
 
+const remove = async (req, res, next) => {
+    
+    try {
+        const idBanner = parseInt(req.params?.idBanner);
+        const result = await bannerService.remove(idBanner);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 export default {
     create,
-    search
+    search,
+    remove
 }
