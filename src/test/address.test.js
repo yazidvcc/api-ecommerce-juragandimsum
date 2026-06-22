@@ -1,6 +1,6 @@
 import request from "supertest";
-import { web } from "../application/web";
-import { depth } from "../application/logging";
+import { web } from "../application/web.js";
+import { depth } from "../application/logging.js";
 
 describe("GET /api/address/province", () => {
 

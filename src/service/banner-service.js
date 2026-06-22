@@ -1,10 +1,10 @@
-import prismaClient from "../application/database";
-import ResponseError from "../error/response-error";
-import { idBannerValidation, urlValidation } from "../validation/banner-validation";
-import validate from "../validation/validation";
+import prismaClient from "../application/database.js";
+import ResponseError from "../error/response-error.js";
+import { idBannerValidation, urlValidation } from "../validation/banner-validation.js";
+import validate from "../validation/validation.js";
 import { v4 as uuid } from "uuid";
 import path from "path";
-import minioClient from "../application/minio";
+import minioClient from "../application/minio.js";
 
 const create = async (file, requestBody) => {
 

@@ -1,4 +1,4 @@
-import bannerService from "../service/banner-service"
+import bannerService from "../service/banner-service.js";
 
 const create = async (req, res, next) => {
     

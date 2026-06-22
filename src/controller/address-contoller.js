@@ -1,4 +1,4 @@
-import addressService from "../service/address-service"
+import addressService from "../service/address-service.js";
 
 const province = async (req, res, next) => {
     

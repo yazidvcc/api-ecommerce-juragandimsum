@@ -1,8 +1,8 @@
-import prismaClient from "../application/database";
+import prismaClient from "../application/database.js";
 import request from "supertest";
-import { depth } from "../application/logging";
-import { createProductImageTest, createProductTest, createUserTest, loginUserTest } from "./test-util";
-import { web } from "../application/web";
+import { depth } from "../application/logging.js";
+import { createProductImageTest, createProductTest, createUserTest, loginUserTest } from "./test-util.js";
+import { web } from "../application/web.js";
 
 describe("POST /api/products", () => {
 

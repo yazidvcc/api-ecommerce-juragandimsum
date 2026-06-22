@@ -1,5 +1,5 @@
-import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation, updateStatusOrderValidation } from "../validation/order-validation"
-import validate from "../validation/validation"
+import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation, updateStatusOrderValidation } from "../validation/order-validation.js"
+import validate from "../validation/validation.js"
 import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
 import ResponseError from "../error/response-error.js";

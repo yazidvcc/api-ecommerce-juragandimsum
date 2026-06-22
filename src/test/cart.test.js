@@ -70,7 +70,7 @@ describe("POST /api/carts", () => {
 
         depth(response.body);
 
-        expect(response.status).toBe(401);
+        expect(response.status).toBe(403);
         expect(response.body.errors).toBeDefined();
     })
 

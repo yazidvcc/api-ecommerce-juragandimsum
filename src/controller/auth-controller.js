@@ -1,6 +1,6 @@
-import prismaClient from "../application/database";
-import { signAccessToken, verifyRefreshToken } from "../application/token";
-import ResponseError from "../error/response-error";
+import prismaClient from "../application/database.js";
+import { signAccessToken, verifyRefreshToken } from "../application/token.js";
+import ResponseError from "../error/response-error.js";
 
 const refresh = async (req, res, next) => {
 
