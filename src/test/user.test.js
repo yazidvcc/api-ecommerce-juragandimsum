@@ -169,6 +169,40 @@ describe("POST /api/users/login", () => {
     });
 });
 
+describe("GET /api/users", () => {
+
+    beforeEach(async () => {
+        await prismaClient.user.deleteMany();
+    });
+
+    it("should success get user", async () => {
+        const userRegister = await createUserTest("yazid", "0895600436143", "password");
+
+        const userLogin = await loginUserTest("0895600436143", "password");
+
+        const response = await request(web).get("/api/users")
+            .set("authorization", `Bearer ${userLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.phone).toBe(userLogin.body.data.phone);
+    })
+
+    it("should reject if user not login", async () => {
+        const userRegister = await createUserTest("yazid", "0895600436143", "password");
+
+        const response = await request(web).get("/api/users")
+            .set("authorization", `Bearer asalaja`)
+
+        depth(response.body);
+        
+        expect(response.status).toBe(401);
+        expect(response.body.errors).toBeDefined()
+    })
+
+})
+
 describe("POST /api/users/logout", () => {
 
     beforeEach(async () => {

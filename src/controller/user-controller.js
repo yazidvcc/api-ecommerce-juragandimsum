@@ -36,6 +36,19 @@ const login = async (req, res, next) => {
 
 }
 
+const get = async (req, res, next) => {
+    
+    try {
+        const result = await userService.get(req.user?.id);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+
+}
+
 const logout = async (req, res, next) => {
 
     try {
@@ -60,5 +73,6 @@ const logout = async (req, res, next) => {
 export default {
     create,
     login,
+    get,
     logout
 };

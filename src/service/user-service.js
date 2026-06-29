@@ -88,6 +88,26 @@ const login = async (request) => {
 
 }
 
+const get = async (userId) => {
+    
+    const user = await prismaClient.user.findUnique({
+        where: { id: userId},
+        select: {
+            id: true,
+            name: true,
+            role: true,
+            phone: true
+        }
+    })
+
+    if (!user) {
+        throw new ResponseError(404, "User is not found");
+    }
+
+    return user;
+
+}
+
 const logout = async (token) => {
 
     await prismaClient.user.updateMany({
@@ -104,5 +124,6 @@ const logout = async (token) => {
 export default {
     create,
     login,
+    get,
     logout
 };
