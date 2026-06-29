@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import "dotenv/config.js";
 import { web } from "../src/application/web.js";
 
 web.listen(process.env.PORT, () => {

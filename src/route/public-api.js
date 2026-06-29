@@ -5,11 +5,12 @@ import productController from "../controller/product-controller.js";
 import addressContoller from "../controller/address-contoller.js";
 import orderController from "../controller/order-controller.js";
 import bannerController from "../controller/banner-controller.js";
+import { authLimiter } from "../application/rate-limit.js";
 
 const publicRouter = express.Router();
 
 publicRouter.post("/users", userController.create);
-publicRouter.post("/users/login", userController.login);
+publicRouter.post("/users/login", authLimiter, userController.login);
 publicRouter.post("/users/logout", userController.logout);
 publicRouter.post("/users/refresh", authController.refresh);
 
