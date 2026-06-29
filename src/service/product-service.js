@@ -248,7 +248,7 @@ const get = async (productId) => {
         const urlPhotos = await Promise.all(product.productPhoto.map(
             async (path) => {
                 const bucket = process.env.MINIO_BUCKET_PRODUCT;
-                const presignedUrl = await minioClient.presignedGetObject(bucket, path.url);
+                const presignedUrl = await minioClient.presignedGetObject(bucket, path.url, 60 * 60);
 
                 return presignedUrl;
             }));

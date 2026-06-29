@@ -100,6 +100,14 @@ const shippingCost = async (request) => {
         throw new ResponseError(404, "Order is not found");
     }
 
+    if (order.status !== "PENDING") {
+        throw new ResponseError(400, "Can only set shipping cost for pending orders");
+    }
+    
+    if (order.shipping_cost) {
+        throw new ResponseError(400, "Shipping cost already set");
+    }
+
     delete request.order_id;
 
     return await prismaClient.order.update({

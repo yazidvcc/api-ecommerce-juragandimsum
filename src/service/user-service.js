@@ -4,6 +4,7 @@ import ResponseError from "../error/response-error.js";
 import bcrypt from "bcrypt";
 import { createUserValidation, loginUserValidation } from "../validation/user-validation.js";
 import { signAccessToken, signRefreshToken } from "../application/token.js";
+import redis from "../application/redis.js";
 
 const create = async (request) => {
 
@@ -45,6 +46,13 @@ const login = async (request) => {
 
     request = validate(loginUserValidation, request);
 
+    const loginAttemptKey = `login_attempts:${request.phone}`;
+    const attempts = await redis.get(loginAttemptKey);
+
+    if (attempts && parseInt(attempts) >= 5) {
+        throw new ResponseError(429, "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.");
+    }
+
     const user = await prismaClient.user.findUnique({
         where: {
             phone: request.phone
@@ -52,15 +60,21 @@ const login = async (request) => {
     });
 
     if (!user) {
-        await bcrypt.compare(request.password, '$2b$12$dummyhashuntuktimingatack000000')
+        await bcrypt.compare(request.password, '$2b$12$dummyhashuntuktimingatack000000');
+        await redis.incr(loginAttemptKey);
+        await redis.expire(loginAttemptKey, 900);
         throw new ResponseError(401, "phone or password is wrong");
     };
 
     const isPasswordValid = await bcrypt.compare(request.password, user.password);
 
     if (!isPasswordValid) {
+        await redis.incr(loginAttemptKey);
+        await redis.expire(loginAttemptKey, 900);
         throw new ResponseError(401, "phone or password is wrong");
     };
+
+    await redis.del(loginAttemptKey);
 
     const payload = {
         id: user.id,

@@ -20,7 +20,7 @@ model User {
   name     String  @db.VarChar(50)
   phone    String  @db.VarChar(15)
   password String  @db.VarChar(255)
-  token    String? @db.VarChar(255)
+  token    String? @db.Text
   role     Role    @default(CUSTOMER)
   cart     Cart[]
   orders   Order[]

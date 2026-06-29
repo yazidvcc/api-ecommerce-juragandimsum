@@ -6,13 +6,13 @@ import fileUpload from './file-upload.js';
 import publicRouter from '../route/public-api.js';
 import protectedRouter from '../route/protected-api.js';
 import errorMiddleware from '../middleware/error-middleware.js';
-import rateLimiter from './rate-limit.js';
+import { apiLimiter } from './rate-limit.js';
 
 const web = express();
 web.use(corsMiddleware);
 web.use(helmet());
-web.use(rateLimiter);
-web.use(express.json());
+web.use(apiLimiter);
+web.use(express.json({ limit: '2mb' }));
 web.use(cookieParser());
 web.use(fileUpload);
 web.use("/api", publicRouter);
