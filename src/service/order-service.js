@@ -103,7 +103,7 @@ const shippingCost = async (request) => {
     if (order.status !== "PENDING") {
         throw new ResponseError(400, "Can only set shipping cost for pending orders");
     }
-    
+
     if (order.shipping_cost) {
         throw new ResponseError(400, "Shipping cost already set");
     }
@@ -483,6 +483,42 @@ const search = async (request, user) => {
 
 }
 
+const get = async (orderId) => {
+    
+    orderId = validate(idOrderValidation, orderId);
+
+    const order = await prismaClient.order.findUnique({
+        where: { id: orderId },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    phone: true
+                }
+            },
+            orderDetails: {
+                select: {
+                    product: {
+                        select: {
+                            name: true,
+                            price: true
+                        }
+                    },
+                    quantity: true
+                }
+            }
+        }
+    });
+
+    if (!order) {
+        throw new ResponseError(404, "Order is not found");
+    }
+
+    return order;
+
+}
+
 const VALID_TRANSITIONS = {
     "PENDING": ["SHIPPED", "CANCELLED"],
     "SHIPPED": ["DELIVERED"],
@@ -531,5 +567,6 @@ export default {
     tokenTransaction,
     getNotification,
     search,
+    get,
     handleStatus
 };
