@@ -26,6 +26,7 @@ protectedRouter.post("/orders", roleMiddleware(["CUSTOMER"]) ,orderController.cr
 protectedRouter.post("/orders/:orderId/shipping-cost", roleMiddleware(["ADMIN"]) ,orderController.shippingCost);
 protectedRouter.post("/orders/:orderId/payment", roleMiddleware(["CUSTOMER"]) ,orderController.tokenTransaction);
 protectedRouter.get("/orders", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.search);
+protectedRouter.get("/orders/:orderId", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.get);
 protectedRouter.post("/orders/:orderId/status", roleMiddleware(["ADMIN"]), orderController.handleStatus);
 
 protectedRouter.post("/banners", roleMiddleware(["ADMIN"]), bannerController.create);

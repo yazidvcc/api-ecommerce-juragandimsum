@@ -523,6 +523,64 @@ describe("GET /api/orders", () => {
 
 })
 
+describe("GET /api/orders/orderId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+        await createUserTest("yazid", "0895600436144", "passwordd", "CUSTOMER");
+    });
+
+    it("should success get order by id", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+        const product2 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 2"
+            }
+        });
+        
+        const order = await createOrderTest(customerLogin.body.data.accessToken, { product_id: product1.id, quantity: 10 }, { product_id: product2.id, quantity: 10 });
+        await setShippingCost(order.body.data.id, adminLogin.body.data.accessToken, 28000);
+
+        const response = await request(web).get(`/api/orders/${order.body.data.id}`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.id).toBe(order.body.data.id);
+    })
+
+    it("should reject if order id is not found", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        const response = await request(web).get(`/api/orders/not-found`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    })
+
+})
+
 describe("POST /api/orders/orderId/status", () => {
 
     beforeEach(async () => {
