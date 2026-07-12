@@ -79,6 +79,7 @@ const login = async (request) => {
     const payload = {
         id: user.id,
         phone: user.phone,
+        name: user.name,
         role: user.role
     };
     const accessToken = signAccessToken(payload);
