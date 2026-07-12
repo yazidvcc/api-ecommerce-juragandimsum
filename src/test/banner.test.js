@@ -20,7 +20,8 @@ describe("POST /api/banners", () => {
             .set("Content-Type", "multipart/form-data")
             .field({
                 url: "https://localhost:9000",
-                name: "promo diskon"
+                name: "promo diskon",
+                description: "Beli dimanapun anda berada"
             })
             .attach("banner", __dirname + "/product_dimsum/image.png");
 

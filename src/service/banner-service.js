@@ -1,6 +1,6 @@
 import prismaClient from "../application/database.js";
 import ResponseError from "../error/response-error.js";
-import { idBannerValidation, urlValidation } from "../validation/banner-validation.js";
+import { idBannerValidation, createBannerValidation } from "../validation/banner-validation.js";
 import validate from "../validation/validation.js";
 import { v4 as uuid } from "uuid";
 import path from "path";
@@ -8,7 +8,7 @@ import minioClient from "../application/minio.js";
 
 const create = async (file, requestBody) => {
 
-    requestBody = validate(urlValidation, requestBody);
+    requestBody = validate(createBannerValidation, requestBody);
 
     if (!file) {
         throw new ResponseError(400, "no files uploaded");
