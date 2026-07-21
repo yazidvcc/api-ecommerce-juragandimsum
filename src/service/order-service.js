@@ -1,4 +1,4 @@
-import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation, updateStatusOrderValidation } from "../validation/order-validation.js"
+import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation, statistictTime, updateStatusOrderValidation } from "../validation/order-validation.js"
 import validate from "../validation/validation.js"
 import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
@@ -484,7 +484,7 @@ const search = async (request, user) => {
 }
 
 const get = async (orderId) => {
-    
+
     orderId = validate(idOrderValidation, orderId);
 
     const order = await prismaClient.order.findUnique({
@@ -561,6 +561,48 @@ const handleStatus = async (request, user) => {
     });
 };
 
+const statistictOrder = async (request) => {
+
+    request = validate(statistictTime, request);
+
+    const stastictOrder = await prismaClient.order.aggregate({
+        _count: {
+            id: true,
+        },
+        _sum: {
+            total_price: true
+        },
+        _avg: {
+            total_price: true
+        },
+        where: {
+            AND: [
+                {
+                    updatedAt: {
+                        gte: request.date_start,
+                        lte: request.date_end
+                    }
+                },
+                {
+                    payment_status: {
+                        equals: "SUCCESS"
+                    }
+                }
+            ]
+        }
+    });
+
+    const totalOrder = stastictOrder._count.id;
+    const totalRevenue = stastictOrder._sum.total_price;
+    const averageTransactionValue = stastictOrder._avg.total_price;
+
+    return {
+        total_order: totalOrder,
+        total_revenue: totalRevenue,
+        average_transaction_value: averageTransactionValue,
+    }
+}
+
 export default {
     create,
     shippingCost,
@@ -568,5 +610,6 @@ export default {
     getNotification,
     search,
     get,
-    handleStatus
+    handleStatus,
+    statistictOrder
 };
