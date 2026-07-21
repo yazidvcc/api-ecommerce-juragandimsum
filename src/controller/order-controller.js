@@ -92,6 +92,18 @@ const handleStatus = async (req, res, next) => {
 
 };
 
+const statistictOder = async (req, res, next) => {
+    
+    try {
+        const result = await orderService.statistictOrder(req.query);
+        res.status(200).json({
+            data: result
+        })
+    } catch (e) {
+        next(e)
+    } 
+}
+
 export default {
     create,
     shippingCost,
@@ -99,5 +111,6 @@ export default {
     getNotification,
     search,
     get,
-    handleStatus
+    handleStatus,
+    statistictOder
 };

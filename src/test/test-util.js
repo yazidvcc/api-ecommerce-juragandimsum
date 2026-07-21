@@ -27,13 +27,13 @@ const loginUserTest = async (phone, password) => {
         });
 }
 
-const createProductTest = async (name) => {
+const createProductTest = async (name, price = 30000, stock = 100) => {
     return prismaClient.product.create({
         data: {
             name: name,
             description: "Description product",
-            price: 20000,
-            stock: 30
+            price: price,
+            stock: stock
         },
         select: {
             id: true

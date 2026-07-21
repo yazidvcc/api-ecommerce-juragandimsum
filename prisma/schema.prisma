@@ -117,7 +117,7 @@ model OrderDetail {
 model Banner {
   id          Int     @id @default(autoincrement())
   name        String?
-  description String?  @db.Text
+  description String? @db.Text
   path        String
   url         String?
 

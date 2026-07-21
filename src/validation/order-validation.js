@@ -39,10 +39,16 @@ const updateStatusOrderValidation = Joi.object({
     status: Joi.string().valid("PENDING", "SHIPPED", "DELIVERED", "CANCELLED").required()
 });
 
+const statistictTime = Joi.object({
+    date_start: Joi.date().required(),
+    date_end: Joi.date().greater(Joi.ref('date_start')).required(),
+});
+
 export {
     createOrderValidation,
     createShippingCostOrderValidation,
     idOrderValidation,
     searchOrderValidation,
-    updateStatusOrderValidation
+    updateStatusOrderValidation,
+    statistictTime
 };
