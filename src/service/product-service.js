@@ -1,6 +1,6 @@
 import prismaClient from "../application/database.js";
 import ResponseError from "../error/response-error.js";
-import { createProductValidation, idProductValidation, searchProductValidation, updateProductValidation } from "../validation/product-validation.js";
+import { createProductValidation, idProductValidation, searchProductValidation, statistictTime, updateProductValidation } from "../validation/product-validation.js";
 import validate from "../validation/validation.js";
 import path from "path";
 import { v4 as uuid } from "uuid";
@@ -297,10 +297,74 @@ const remove = async (productId) => {
 
 }
 
+const statistictProduct = async (request) => {
+
+    request = validate(statistictTime, request);
+    
+    const totalProductSold = await prismaClient.orderDetail.groupBy({
+        by: ["product_id"],
+        _sum: {
+            quantity: true
+        },
+        where: {
+            AND: [
+                {
+                    createdAt: {
+                        gte: request.date_start,
+                        lte: request.date_end
+                    }
+                },
+                {
+                    order: {
+                        OR: [
+                            {
+                                status: {
+                                    equals: "DELIVERED"
+                                }
+                            },
+                            {
+                                status: {
+                                    equals: "SHIPPED"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    })
+
+    const products = await prismaClient.product.findMany({
+        select: {
+            id: true,
+            name: true,
+            stock: true
+        }
+    });
+
+    const productSoldStatistict = products.map(product => {
+        for (const index in totalProductSold) {
+            if (product.id === totalProductSold[index].product_id) {
+                product.sold = totalProductSold[index]._sum.quantity;
+                delete totalProductSold[index];
+                return product;
+            }
+        }
+        product.sold = 0;
+        return product;
+    }) 
+
+    return {
+        product_sold: productSoldStatistict
+    }
+
+}
+
 export default {
     create,
     update,
     search,
     get,
-    remove
+    remove,
+    statistictProduct
 };

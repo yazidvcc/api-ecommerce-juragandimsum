@@ -15,6 +15,7 @@ publicRouter.post("/users/logout", userController.logout);
 publicRouter.post("/users/refresh", authController.refresh);
 
 publicRouter.get("/products", productController.search);
+publicRouter.get("/products/statistict", productController.statistictProduct);
 publicRouter.get("/products/:productId", productController.get);
 
 publicRouter.get("/address/province", addressContoller.province);

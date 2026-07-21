@@ -66,10 +66,24 @@ const remove = async (req, res, next) => {
 
 };
 
+const statistictProduct = async (req, res, next) => {
+    
+    try {
+        const result = await productService.statistictProduct(req.query);
+        res.status(200).json({
+            data: result
+        })
+    } catch (e) {
+        next(e)
+    }
+
+}
+
 export default {
     create,
     update,
     search,
     get,
-    remove
+    remove,
+    statistictProduct
 };

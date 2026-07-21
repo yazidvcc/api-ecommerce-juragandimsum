@@ -23,9 +23,15 @@ const searchProductValidation = Joi.object({
 
 const idProductValidation = Joi.number().positive().required();
 
+const statistictTime = Joi.object({
+    date_start: Joi.date().required(),
+    date_end: Joi.date().greater(Joi.ref('date_start')).required(),
+});
+
 export {
     createProductValidation,
     updateProductValidation,
     searchProductValidation,
-    idProductValidation
+    idProductValidation,
+    statistictTime
 };

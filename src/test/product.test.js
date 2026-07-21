@@ -315,7 +315,7 @@ describe("DELETE /api/products/productId", () => {
 
         const response = await request(web).delete(`/api/products/${product.body.data.id}`)
             .set("authorization", `Bearer ${userLogin.body.data.accessToken}`);
-        
+
 
         depth(response.body);
 
@@ -351,6 +351,73 @@ describe("DELETE /api/products/productId", () => {
 
         expect(response.status).toBe(404);
         expect(response.body.errors).toBeDefined();
+    })
+
+})
+
+describe("GET /api/products/statistict", () => {
+
+    beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    });
+
+    it("should success get statistict product", async () => {
+        for (let i = 1; i <= 7; i++) {
+            await createProductTest(`product ${i}`);
+        }
+
+        const customer = await createUserTest("customer", "08153146627", "password");
+        const products = await prismaClient.product.findMany({ take: 2 });
+
+        const orders = await prismaClient.order.create({
+            data: {
+                id: "dqjfw93f09202",
+                user_id: customer.id,
+                address: "Jl. Titi Pahlawan",
+                total_price: 1000000,
+                payment_status: "SUCCESS",
+                payment_type: "OVO",
+                shipping_cost: 20000,
+                shipping_name: "BUS",
+                status: "DELIVERED",
+                orderDetails: {
+                    createMany: {
+                        data: [
+                            {
+                                product_id: products[0].id,
+                                quantity: 25
+                            },
+                            {
+                                product_id: products[1].id,
+                                quantity: 30
+                            }
+                        ]
+                    }
+                }
+            }
+        })
+
+        const adminLogin = await loginUserTest("0895600436143", "password");
+
+        const date = new Date();
+        const month = date.getMonth();
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const response = await request(web).get("/api/products/statistict")
+            .query({
+                date_start: new Date(year, month, day, 0, 0, 0, 0),
+                date_end: new Date(year, month, day, 23, 59, 59, 999)
+            })
+
+        depth(response.body);
+
+        expect(response.status).toBe(200);
     })
 
 })
