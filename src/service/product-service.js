@@ -360,7 +360,7 @@ const statistictProduct = async (request) => {
 
 }
 
-const removePhoto = async (requestParams, reqFiles) => {
+const removePhoto = async (requestParams) => {
 
     const idProduct = validate(idProductValidation, requestParams.productId);
     const idPhotoProduct = validate(idPhotoProductValidation, requestParams.photoProductId);
@@ -380,7 +380,7 @@ const removePhoto = async (requestParams, reqFiles) => {
 
     if (!productPhoto) {
         throw new ResponseError(404, "product photo not found");
-    } 
+    }
 
     const bucket = process.env.MINIO_BUCKET_PRODUCT;
     await minioClient.removeObject(bucket, productPhoto.url);
@@ -395,6 +395,98 @@ const removePhoto = async (requestParams, reqFiles) => {
 
 }
 
+const createPhoto = async (productId, requestFile) => {
+
+    productId = validate(idProductValidation, productId);
+
+    let files = requestFile?.photo;
+    if (!files) {
+        throw new ResponseError(400, "upload at least one photo");
+    }
+
+    files = Array.isArray(files) ? files : [files];
+
+    const allowedExtension = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowedMimeType = ['image/jpeg', 'image/png', 'image/webp'];
+
+    files.forEach(file => {
+        const fileExtension = path.extname(file.name).toLowerCase();
+        const mimeType = file.mimetype;
+
+        const isValidFileExtension = allowedExtension.includes(fileExtension);
+        const isValidMimeType = allowedMimeType.includes(mimeType);
+
+        if (!isValidFileExtension || !isValidMimeType) {
+            throw new ResponseError(400, `Format file ${file.name} tidak diizinkan`);
+        }
+    });
+
+    const countInDatabase = await prismaClient.product.count({
+        where: {
+            id: productId
+        }
+    });
+
+    if (countInDatabase === 0) {
+        throw new ResponseError(404, "product not found");
+    }
+
+    const bucket = process.env.MINIO_BUCKET_PRODUCT;
+    const uploadedObjects = [];
+
+    try {
+        await Promise.all(files.map(async (file) => {
+            const urlFile = `product-${productId}/${uuid()}${path.extname(file.name).toLowerCase()}`;
+
+            await minioClient.putObject(
+                bucket,
+                urlFile,
+                file.data,
+                file.size,
+                {
+                    "Content-Type": file.mimetype
+                }
+            );
+
+            uploadedObjects.push({
+                product_id: productId,
+                url: urlFile
+            })
+        }));
+
+        await prismaClient.productPhoto.createMany({
+            data: uploadedObjects
+        })
+    } catch (e) {
+        if (uploadedObjects.length > 0) {
+            await Promise.all(uploadedObjects.map(async (fileName) => {
+                await minioClient.removeObject(bucketName, fileName);
+            }));
+        }
+
+        await prismaClient.productPhoto.deleteMany({
+            where: {
+                OR: uploadedObjects.maps(data => ({ url: data.url }))
+            }
+        })
+    }
+
+    return prismaClient.product.findUnique({
+        where: {
+            id: productId
+        },
+        include: {
+            productPhoto: {
+                select: {
+                    id: true,
+                    url: true
+                }
+            }
+        }
+    });
+
+}
+
 export default {
     create,
     update,
@@ -402,5 +494,6 @@ export default {
     get,
     remove,
     statistictProduct,
-    removePhoto
+    removePhoto,
+    createPhoto
 };
