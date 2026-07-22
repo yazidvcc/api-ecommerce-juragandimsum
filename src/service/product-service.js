@@ -1,6 +1,6 @@
 import prismaClient from "../application/database.js";
 import ResponseError from "../error/response-error.js";
-import { createProductValidation, idProductValidation, searchProductValidation, statistictTime, updateProductValidation } from "../validation/product-validation.js";
+import { createProductValidation, idPhotoProductValidation, idProductValidation, searchProductValidation, statistictTime, updateProductValidation } from "../validation/product-validation.js";
 import validate from "../validation/validation.js";
 import path from "path";
 import { v4 as uuid } from "uuid";
@@ -300,7 +300,7 @@ const remove = async (productId) => {
 const statistictProduct = async (request) => {
 
     request = validate(statistictTime, request);
-    
+
     const totalProductSold = await prismaClient.orderDetail.groupBy({
         by: ["product_id"],
         _sum: {
@@ -352,11 +352,46 @@ const statistictProduct = async (request) => {
         }
         product.sold = 0;
         return product;
-    }) 
+    })
 
     return {
         product_sold: productSoldStatistict
     }
+
+}
+
+const removePhoto = async (requestParams, reqFiles) => {
+
+    const idProduct = validate(idProductValidation, requestParams.productId);
+    const idPhotoProduct = validate(idPhotoProductValidation, requestParams.photoProductId);
+
+    const productPhoto = await prismaClient.productPhoto.findFirst({
+        where: {
+            AND: [
+                {
+                    id: idPhotoProduct
+                },
+                {
+                    product_id: idProduct
+                }
+            ]
+        }
+    })
+
+    if (!productPhoto) {
+        throw new ResponseError(404, "product photo not found");
+    } 
+
+    const bucket = process.env.MINIO_BUCKET_PRODUCT;
+    await minioClient.removeObject(bucket, productPhoto.url);
+
+    await prismaClient.productPhoto.delete({
+        where: {
+            id: productPhoto.id
+        }
+    });
+
+    return "OK";
 
 }
 
@@ -366,5 +401,6 @@ export default {
     search,
     get,
     remove,
-    statistictProduct
+    statistictProduct,
+    removePhoto
 };
