@@ -92,6 +92,19 @@ const removePhoto = async (req, res, next) => {
 
 }
 
+const createPhoto = async (req, res, next) => {
+
+    try {
+        const result = await productService.createPhoto(req.params.productId, req.files);
+        res.status(201).json({
+            data: result
+        })
+    } catch (e) {
+        next(e)
+    }
+
+}
+
 export default {
     create,
     update,
@@ -99,5 +112,6 @@ export default {
     get,
     remove,
     statistictProduct,
-    removePhoto
+    removePhoto,
+    createPhoto
 };

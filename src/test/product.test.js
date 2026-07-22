@@ -475,3 +475,89 @@ describe("DELETE /api/products/productId/photo/photoProduct", () => {
     })
 
 })
+
+describe("POST /api/products/productId/photo", () => {
+
+    beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    })
+    
+    it("should success add photo product", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const product = await createProductImageTest("Dimsum Mentai", adminLogin.body.data.accessToken);
+
+        const response = await request(web).post(`/api/products/${product.body.data.id}/photo`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            .set("Content-Type", "multipart/form-data")
+            .attach("photo", __dirname + "/product_dimsum/images (1).jpg")
+            .attach("photo", __dirname + "/product_dimsum/images (2).jpg")
+
+        depth(response.body);
+
+        expect(response.status).toBe(201);
+        expect(response.body.data).toBeDefined();
+    })
+
+    it("should reject if id product invalid", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+
+        const response = await request(web).post(`/api/products/null/photo`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            .set("Content-Type", "multipart/form-data")
+            .attach("photo", __dirname + "/product_dimsum/images (1).jpg")
+            .attach("photo", __dirname + "/product_dimsum/images (2).jpg")
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if product not found", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+
+        const response = await request(web).post(`/api/products/999/photo`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            .set("Content-Type", "multipart/form-data")
+            .attach("photo", __dirname + "/product_dimsum/images (1).jpg")
+            .attach("photo", __dirname + "/product_dimsum/images (2).jpg")
+
+        depth(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if no photo is sent", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+
+        const response = await request(web).post(`/api/products/999/photo`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            .set("Content-Type", "multipart/form-data");
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if extension file invalid", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+
+        const response = await request(web).post(`/api/products/999/photo`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            .set("Content-Type", "multipart/form-data")
+            .attach("photo", __dirname + "/product_dimsum/text.txt");
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })    
+
+})
