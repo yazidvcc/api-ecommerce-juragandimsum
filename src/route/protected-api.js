@@ -15,6 +15,7 @@ protectedRouter.get("/users", roleMiddleware(["ADMIN","CUSTOMER"]), userControll
 
 protectedRouter.post("/products", roleMiddleware(["ADMIN"]),productController.create);
 protectedRouter.patch("/products/:productId", roleMiddleware(["ADMIN"]),productController.update);
+protectedRouter.delete("/products/:productId/photo/:photoProductId", productController.removePhoto)
 protectedRouter.delete("/products/:productId", roleMiddleware(["ADMIN"]),productController.remove);
 
 protectedRouter.post("/carts", roleMiddleware(["CUSTOMER"]) ,cartController.create);

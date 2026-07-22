@@ -79,11 +79,25 @@ const statistictProduct = async (req, res, next) => {
 
 }
 
+const removePhoto = async (req, res, next) => {
+
+    try {
+        const result = await productService.removePhoto(req.params);
+        res.status(200).json({
+            data: result
+        })
+    } catch (e) {
+        next(e)
+    }
+
+}
+
 export default {
     create,
     update,
     search,
     get,
     remove,
-    statistictProduct
+    statistictProduct,
+    removePhoto
 };

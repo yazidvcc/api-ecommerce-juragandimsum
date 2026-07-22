@@ -421,3 +421,57 @@ describe("GET /api/products/statistict", () => {
     })
 
 })
+
+describe("DELETE /api/products/productId/photo/photoProduct", () => {
+
+    beforeEach(async () => {
+        await prismaClient.orderDetail.deleteMany();
+        await prismaClient.order.deleteMany();
+        await prismaClient.productPhoto.deleteMany();
+        await prismaClient.product.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    })
+
+    it("should success remove photo product", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const product = await createProductImageTest("Dimsum Mentai", adminLogin.body.data.accessToken);
+
+        const photoProduct = await prismaClient.productPhoto.findFirst();
+
+        const response = await request(web).delete(`/api/products/${photoProduct.product_id}/photo/${photoProduct.id}`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`);
+
+        console.info(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toBe("OK");
+    })
+
+    it("should reject if photo product not found", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const product = await createProductImageTest("Dimsum Mentai", adminLogin.body.data.accessToken);
+
+        const response = await request(web).delete(`/api/products/999/photo/9999`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`);
+
+        console.info(response.body);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    })
+
+    it("should reject if id product and id photo product invalid", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const product = await createProductImageTest("Dimsum Mentai", adminLogin.body.data.accessToken);
+
+        const response = await request(web).delete(`/api/products/null/photo/null`)
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`);
+
+        console.info(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
+})
