@@ -58,6 +58,28 @@ const create = async (file, requestBody) => {
 
 }
 
+const get = async (bannerId) => {
+
+    bannerId = validate(idBannerValidation, bannerId);
+
+    const banner = await prismaClient.banner.findUnique({
+        where: { id: bannerId }
+    });
+
+    if (!banner) {
+        throw new ResponseError(404, "Banner is not found");
+    }
+
+    if (banner.path) {
+        const bucket = process.env.MINIO_BUCKET_BANNER;
+        const presignedUrl = await minioClient.presignedGetObject(bucket, banner.path, 60 * 60);
+        banner.image_url = presignedUrl;
+        delete banner.path;
+    }
+
+    return banner;
+}
+
 const search = async () => {
     
     const banners = await prismaClient.banner.findMany();
@@ -106,5 +128,6 @@ const remove = async (idBanner) => {
 export default {
     create,
     search,
-    remove
+    remove,
+    get
 }

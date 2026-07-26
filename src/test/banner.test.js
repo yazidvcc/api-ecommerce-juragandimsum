@@ -164,3 +164,24 @@ describe("DELETE /api/banner/idBanner", () => {
         expect(response.body.errors).toBeDefined();
     })
 })
+
+describe("GET /api/banners/bannerId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.banner.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    });    
+
+    it("should success get banner by id", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const banner = await createBannerTest(adminLogin.body.data.accessToken, "diskon ongkir");
+
+        const response = await request(web).get(`/api/banners/${banner.id}`)
+
+        depth(response.body.data);
+
+        expect(response.status).toBe(200);
+    })
+
+})

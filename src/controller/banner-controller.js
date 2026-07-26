@@ -13,6 +13,20 @@ const create = async (req, res, next) => {
 
 }
 
+const get = async (req, res, next) => {
+    
+    try {
+        const bannerId = parseInt(req.params?.bannerId);
+        const result = await bannerService.get(bannerId);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+
+}
+
 const search = async (req, res, next) => {
     
     try {
@@ -41,5 +55,6 @@ const remove = async (req, res, next) => {
 export default {
     create,
     search,
-    remove
+    remove,
+    get
 }
