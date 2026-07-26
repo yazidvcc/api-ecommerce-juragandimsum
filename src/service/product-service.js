@@ -250,11 +250,14 @@ const get = async (productId) => {
                 const bucket = process.env.MINIO_BUCKET_PRODUCT;
                 const presignedUrl = await minioClient.presignedGetObject(bucket, path.url, 60 * 60);
 
-                return presignedUrl;
+                return {
+                    id: path.id,
+                    url: presignedUrl
+                };
             }));
 
-        delete product.productPhoto;
-        product.url_photos = urlPhotos;
+        product.productPhoto = urlPhotos;
+        product.url_photos = urlPhotos.map((photo) => photo.url);
     }
 
     return product;
@@ -471,7 +474,7 @@ const createPhoto = async (productId, requestFile) => {
         })
     }
 
-    return prismaClient.product.findUnique({
+    const result = await prismaClient.product.findUnique({
         where: {
             id: productId
         },
@@ -484,6 +487,22 @@ const createPhoto = async (productId, requestFile) => {
             }
         }
     });
+
+    if (result && result.productPhoto && result.productPhoto.length > 0) {
+        const urlPhotos = await Promise.all(result.productPhoto.map(
+            async (photo) => {
+                const presignedUrl = await minioClient.presignedGetObject(bucket, photo.url, 60 * 60);
+                return {
+                    id: photo.id,
+                    url: presignedUrl
+                };
+            }
+        ));
+        result.product_photo = urlPhotos;
+        delete result.productPhoto 
+    }
+
+    return result;
 
 }
 
