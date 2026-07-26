@@ -26,5 +26,6 @@ publicRouter.get("/address/subdistrict/:districtId", addressContoller.subdistric
 publicRouter.post("/orders/payment-notification-handler", orderController.getNotification);
 
 publicRouter.get("/banners", bannerController.search);
+publicRouter.get("/banners/:bannerId", bannerController.get);
 
 export default publicRouter;
