@@ -1,4 +1,4 @@
-import { logger } from "../application/logging.js";
+import { depth, logger } from "../application/logging.js";
 import ResponseError from "../error/response-error.js";
 
 const errorMiddleware = async (error, req, res, next) => {
@@ -13,7 +13,7 @@ const errorMiddleware = async (error, req, res, next) => {
             errors: error.message
         }).end();
     } else {
-        logger.info(`Unhandled Error ${error.message}`)
+        depth(`Unhandled Error : ${error.message}`)
         res.status(500).json({
             errors: "Internal server error"
         }).end();
