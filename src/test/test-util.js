@@ -114,7 +114,7 @@ const createBannerTest = async (accessToken, name) => {
             url: "https://localhost:9000",
             name: name 
         })
-        .attach("banner", __dirname + "/product_dimsum/image.png");
+        .attach("banner", __dirname + "/product_dimsum/images.jpg");
 
     return response.body.data;
 }

@@ -185,3 +185,28 @@ describe("GET /api/banners/bannerId", () => {
     })
 
 })
+
+describe("PATCH /api/banners/bannerId", () => {
+
+    beforeEach(async () => {
+        await prismaClient.banner.deleteMany();
+        await prismaClient.user.deleteMany();
+        await createUserTest("yazid", "0895600436143", "password", "ADMIN");
+    });    
+
+    it("should success update banner", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const banner = await createBannerTest(adminLogin.body.data.accessToken, "diskon ongkir");
+
+        const response = await request(web).patch(`/api/banners/${banner.id}`)
+            .set("Content-Type", "multipart/form-data")
+            .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
+            // .field("name", "diskon ongkir")
+            .attach("banner", __dirname + "/product_dimsum/ChatGPT Image Jul 28, 2026, 11_55_11 PM.png")
+        
+        depth(response.body.data);
+
+        expect(response.status).toBe(200);
+    })
+
+})

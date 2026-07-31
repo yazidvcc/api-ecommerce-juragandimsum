@@ -1,6 +1,6 @@
 import prismaClient from "../application/database.js";
 import ResponseError from "../error/response-error.js";
-import { idBannerValidation, createBannerValidation } from "../validation/banner-validation.js";
+import { idBannerValidation, createBannerValidation, updateBannerValidation } from "../validation/banner-validation.js";
 import validate from "../validation/validation.js";
 import { v4 as uuid } from "uuid";
 import path from "path";
@@ -81,7 +81,7 @@ const get = async (bannerId) => {
 }
 
 const search = async () => {
-    
+
     const banners = await prismaClient.banner.findMany();
     const bucket = process.env.MINIO_BUCKET_BANNER;
 
@@ -100,7 +100,7 @@ const search = async () => {
 }
 
 const remove = async (idBanner) => {
-    
+
     idBanner = validate(idBannerValidation, idBanner);
 
     const banner = await prismaClient.banner.findUnique({
@@ -125,9 +125,63 @@ const remove = async (idBanner) => {
     return "OK";
 }
 
+const update = async (request, file) => {
+
+    request = validate(updateBannerValidation, request);
+
+    const banner = await prismaClient.banner.findUnique({
+        where: { id: request.id }
+    });
+
+    if (!banner) {
+        throw new ResponseError(404, "Banner is not found");  
+    }
+
+    request.path = request.name ? request.name.replace(/[^a-zA-Z0-9]/g, "") + path.extname(banner.path).toLowerCase() : banner.path;
+
+    if (file) {
+        file = Array.isArray(file) ? file[0] : file;
+        const fileExtension = path.extname(file.name).toLowerCase();
+        const mimeType = file.mimetype;
+
+        const allowedExtension = ['.jpg', '.jpeg', '.png', '.webp'];
+        const allowedMimeType = ['image/jpeg', 'image/png', 'image/webp'];
+
+        const isValidFileExtension = allowedExtension.includes(fileExtension);
+        const isValidMimeType = allowedMimeType.includes(mimeType);
+
+        if (!isValidFileExtension || !isValidMimeType) {
+            throw new ResponseError(400, `Format file ${file.name} tidak diizinkan`);
+        }
+
+        const bucket = process.env.MINIO_BUCKET_BANNER;
+
+        await minioClient.removeObject(
+            bucket,
+            banner.path
+        );
+        await minioClient.putObject(
+            bucket,
+            request.path,
+            file.data,
+            file.size,
+            file.mimetype
+        );
+    }
+
+    delete request.id;
+
+    return prismaClient.banner.update({
+        data: request,
+        where: { id: banner.id }
+    });
+
+}
+
 export default {
     create,
     search,
     remove,
-    get
+    get,
+    update
 }

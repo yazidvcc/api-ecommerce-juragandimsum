@@ -34,5 +34,6 @@ protectedRouter.post("/orders/:orderId/status", roleMiddleware(["ADMIN","CUSTOME
 
 protectedRouter.post("/banners", roleMiddleware(["ADMIN"]), bannerController.create);
 protectedRouter.delete("/banners/:idBanner", roleMiddleware(["ADMIN"]), bannerController.remove);
+protectedRouter.patch("/banners/:bannerId", roleMiddleware(["ADMIN"]), bannerController.update);
 
 export default protectedRouter;

@@ -52,9 +52,25 @@ const remove = async (req, res, next) => {
     }
 }
 
+const update = async (req, res, next) => {
+    
+    try {
+        const bannerId = parseInt(req.params?.bannerId);
+        req.body = req.body || {};
+        req.body.id = bannerId;
+        const result = await bannerService.update(req.body, req.files?.banner);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 export default {
     create,
     search,
     remove,
-    get
+    get,
+    update
 }
