@@ -167,6 +167,18 @@ const update = async (request, file) => {
             file.size,
             file.mimetype
         );
+    } else {
+        const bucket = process.env.MINIO_BUCKET_BANNER;
+
+        await minioClient.copyObject(
+            bucket,
+            request.path,
+            `/${bucket}/${banner.path}`
+        );
+        await minioClient.removeObject(
+            bucket,
+            banner.path
+        );
     }
 
     delete request.id;
