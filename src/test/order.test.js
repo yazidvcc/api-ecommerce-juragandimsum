@@ -670,6 +670,39 @@ describe("POST /api/orders/orderId/status", () => {
         expect(customerResponse.body.data).toBeDefined();
     })
 
+    it("should reject cancelling order by customer when payment has already been completed", async () => {
+        const adminLogin = await loginUserTest("0895600436143", "password");
+        const customerLogin = await loginUserTest("0895600436144", "passwordd");
+
+        for (let i = 1; i <= 3; i++) {
+            await createProductImageTest(`Dimsum ${i}`, adminLogin.body.data.accessToken);
+        };
+
+        const product1 = await prismaClient.product.findFirst({
+            where: {
+                name: "Dimsum 1"
+            }
+        });
+
+        const order = await createOrderTest(customerLogin.body.data.accessToken, { product_id: product1.id, quantity: 10 });
+        await prismaClient.order.update({
+            where: { id: order.body.data.id },
+            data: { payment_status: "SUCCESS" }
+        });
+
+        const response = await request(web).post(`/api/orders/${order.body.data.id}/status`)
+            .set("authorization", `Bearer ${customerLogin.body.data.accessToken}`)
+            .set("Content-Type", "application/json")
+            .send({
+                status: "CANCELLED"
+            });
+
+        depth(response.body);
+
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    })
+
 })
 
 describe("GET /api/orders/statistict", () => {
