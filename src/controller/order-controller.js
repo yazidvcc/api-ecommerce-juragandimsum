@@ -81,6 +81,7 @@ const get = async (req, res, next) => {
 const handleStatus = async (req, res, next) => {
     
     try {
+        req.body = req.body || {};
         req.body.order_id = req.params.orderId;
         const result = await orderService.handleStatus(req.body, req.user);
         res.status(200).json({

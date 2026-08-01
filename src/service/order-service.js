@@ -550,8 +550,16 @@ const handleStatus = async (request, user) => {
         if (order.user_id !== user.id) {
             throw new ResponseError(403, "Not your order");
         }
-        if (request.status !== "DELIVERED") {
-            throw new ResponseError(403, "Customer can only confirm delivery");
+        if (request.status === "SHIPPED" || request.status === "PENDING") {
+            throw new ResponseError(403, "your request invalid");
+        }
+        if (request.status === "CANCELLED") {
+            if (order.status !== "PENDING") {
+                throw new ResponseError(403, "cannot cancel order unless it is still pending");
+            }
+            if (order.payment_status === "SUCCESS") {
+                throw new ResponseError(400, "cannot cancel order because payment has been completed");
+            }
         }
     }
 
