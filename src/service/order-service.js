@@ -47,7 +47,6 @@ const create = async (request, userId) => {
             });
         }
 
-        request.id = `${userId}-${new Date().toTimeString().split(" ")[0]}-${uuid()}`;
         request.user = {
             connect: {
                 id: userId
