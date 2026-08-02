@@ -134,7 +134,7 @@ const update = async (request, file) => {
     });
 
     if (!banner) {
-        throw new ResponseError(404, "Banner is not found");  
+        throw new ResponseError(404, "Banner is not found");
     }
 
     request.path = request.name ? request.name.replace(/[^a-zA-Z0-9]/g, "") + path.extname(banner.path).toLowerCase() : banner.path;
@@ -169,16 +169,17 @@ const update = async (request, file) => {
         );
     } else {
         const bucket = process.env.MINIO_BUCKET_BANNER;
-
-        await minioClient.copyObject(
-            bucket,
-            request.path,
-            `/${bucket}/${banner.path}`
-        );
-        await minioClient.removeObject(
-            bucket,
-            banner.path
-        );
+        if (request.path !== banner.path) {
+            await minioClient.copyObject(
+                bucket,
+                request.path,
+                `/${bucket}/${banner.path}`
+            );
+            await minioClient.removeObject(
+                bucket,
+                banner.path
+            );
+        }
     }
 
     delete request.id;
