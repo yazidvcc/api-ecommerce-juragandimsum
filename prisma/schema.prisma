@@ -82,7 +82,7 @@ enum OrderStatus {
 }
 
 model Order {
-  id             String        @id @db.VarChar(300)
+  id             Int           @id @default(autoincrement())
   user_id        Int
   address        String        @db.Text
   total_price    Int
@@ -102,7 +102,7 @@ model Order {
 
 model OrderDetail {
   id         Int      @id @default(autoincrement())
-  order_id   String
+  order_id   Int
   product_id Int?
   quantity   Int      @db.SmallInt
   createdAt  DateTime @default(now())
