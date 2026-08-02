@@ -13,15 +13,15 @@ const createOrderValidation = Joi.object({
 });
 
 const createShippingCostOrderValidation = Joi.object({
-    order_id: Joi.string().required(),
+    order_id: Joi.number().positive().required(),
     shipping_cost: Joi.number().positive().required(),
     shipping_name: Joi.string().required()
 });
 
-const idOrderValidation = Joi.string().required();
+const idOrderValidation = Joi.number().positive().required();
 
 const searchOrderValidation = Joi.object({
-    order_id: Joi.string().optional(),
+    order_id: Joi.number().positive().optional(),
     phone_user: Joi.string().optional(),
     name_user: Joi.string().optional(),
     address: Joi.string().optional(),
@@ -35,7 +35,7 @@ const searchOrderValidation = Joi.object({
 });
 
 const updateStatusOrderValidation = Joi.object({
-    order_id: Joi.string().required(),
+    order_id: Joi.number().positive().required(),
     status: Joi.string().valid("PENDING", "SHIPPED", "DELIVERED", "CANCELLED").required()
 });
 
