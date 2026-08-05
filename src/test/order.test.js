@@ -337,7 +337,7 @@ describe("POST /api/orders/orderId/shipping-cost", () => {
 
         const order = await createOrderTest(customerLogin.body.data.accessToken, { product_id: product1.id, quantity: 10 }, { product_id: product2.id, quantity: 10 });
 
-        const response = await request(web).post(`/api/orders/not-found/shipping-cost`)
+        const response = await request(web).post(`/api/orders/999/shipping-cost`)
             .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
             .set("Content-Type", "application/json")
             .send({
@@ -523,7 +523,7 @@ describe("GET /api/orders", () => {
 
 })
 
-describe("GET /api/orders/orderId", () => {
+describe("GET /api/orders/orderId", () => { 
 
     beforeEach(async () => {
         await prismaClient.orderDetail.deleteMany();
@@ -570,7 +570,7 @@ describe("GET /api/orders/orderId", () => {
         const adminLogin = await loginUserTest("0895600436143", "password");
         const customerLogin = await loginUserTest("0895600436144", "passwordd");
 
-        const response = await request(web).get(`/api/orders/not-found`)
+        const response = await request(web).get(`/api/orders/999`)
             .set("authorization", `Bearer ${adminLogin.body.data.accessToken}`)
 
         depth(response.body);
@@ -726,7 +726,6 @@ describe("GET /api/orders/statistict", () => {
 
         const orders = await prismaClient.order.create({
             data: {
-                id: "dqjfw93f09202",
                 user_id: customer.id,
                 address: "Jl. Titi Pahlawan",
                 total_price: 1000000,
