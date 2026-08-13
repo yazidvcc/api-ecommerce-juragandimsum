@@ -43,7 +43,7 @@ const login = async (request) => {
 
     request = validate(loginUserValidation, request);
 
-    const loginAttemptKey = `login_attempts:${request.phone}`;
+    const loginAttemptKey = `login_attempts:${request.username}`;
     const attempts = await redis.get(loginAttemptKey);
 
     if (attempts && parseInt(attempts) >= 5) {
@@ -52,7 +52,7 @@ const login = async (request) => {
 
     const user = await prismaClient.user.findUnique({
         where: {
-            phone: request.phone
+            username: request.username
         }
     });
 
@@ -60,7 +60,7 @@ const login = async (request) => {
         await bcrypt.compare(request.password, '$2b$12$dummyhashuntuktimingatack000000');
         await redis.incr(loginAttemptKey);
         await redis.expire(loginAttemptKey, 900);
-        throw new ResponseError(401, "phone or password is wrong");
+        throw new ResponseError(401, "username or password is wrong");
     };
 
     const isPasswordValid = await bcrypt.compare(request.password, user.password);
@@ -68,14 +68,14 @@ const login = async (request) => {
     if (!isPasswordValid) {
         await redis.incr(loginAttemptKey);
         await redis.expire(loginAttemptKey, 900);
-        throw new ResponseError(401, "phone or password is wrong");
+        throw new ResponseError(401, "username or password is wrong");
     };
 
     await redis.del(loginAttemptKey);
 
     const payload = {
         id: user.id,
-        phone: user.phone,
+        username: user.username,
         name: user.name,
         role: user.role
     };
@@ -93,7 +93,7 @@ const login = async (request) => {
 
     return {
         id: user.id,
-        phone: user.phone,
+        username: user.username,
         accessToken: accessToken,
         refreshToken: refreshToken
     };
@@ -108,7 +108,7 @@ const get = async (userId) => {
             id: true,
             name: true,
             role: true,
-            phone: true
+            username: true
         }
     })
 

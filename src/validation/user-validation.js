@@ -11,7 +11,7 @@ const createUserValidation = Joi.object({
 });
 
 const loginUserValidation = Joi.object({
-    phone: Joi.string().min(11).max(13).pattern(/^[0-9]+$/).required(),
+    username: Joi.string().min(3).max(15).pattern(/^[a-z][a-z0-9_]{2,19}$/).required(),
     password: Joi.string().max(255).required()
 });
 

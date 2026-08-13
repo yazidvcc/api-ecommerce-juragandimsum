@@ -26,7 +26,7 @@ const login = async (req, res, next) => {
         res.status(200).json({
             data: {
                 id: result.id,
-                phone: result.phone,
+                username: result.username,
                 accessToken: result.accessToken
             }
         });

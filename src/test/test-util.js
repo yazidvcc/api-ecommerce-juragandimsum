@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import request from "supertest";
 import { web } from "../application/web.js";
 
-const createCustomerTest = async (name, username, password) => {
+const createUserTest = async (name, username, password) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -17,11 +17,11 @@ const createCustomerTest = async (name, username, password) => {
 
 };
 
-const loginUserTest = async (phone, password) => {
+const loginUserTest = async (username, password) => {
     return request(web).post("/api/users/login")
         .set("Accept", "application/json")
         .send({
-            phone: phone,
+            username: username,
             password: password
         });
 }
