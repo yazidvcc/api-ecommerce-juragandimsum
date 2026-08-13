@@ -12,12 +12,12 @@ const create = async (request) => {
 
     const countInDatabase = await prismaClient.user.count({
         where: {
-            phone: request.phone
+            username: request.username
         }
     });
 
     if (countInDatabase > 0) {
-        throw new ResponseError(400, "phone is already exist");
+        throw new ResponseError(400, "username is already exist");
     };
 
     request.password = await bcrypt.hash(request.password, 10);
@@ -33,7 +33,7 @@ const create = async (request) => {
         select: {
             id: true,
             name: true,
-            phone: true
+            username: true
         }
     });
 
