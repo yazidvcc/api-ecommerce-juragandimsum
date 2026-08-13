@@ -17,7 +17,7 @@ describe("POST /api/users", () => {
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436143",
+                username: "yazidkhairul_",
                 password: "password",
                 confirm_password: "password"
             });
@@ -26,18 +26,17 @@ describe("POST /api/users", () => {
 
         expect(response.status).toBe(201);
         expect(response.body.data.name).toBe("yazid khairul");
-        expect(response.body.data.phone).toBe("0895600436143");
+        expect(response.body.data.username).toBe("yazidkhairul_");
 
     });
 
-    it("should reject if phone invalid", async () => {
-        
+    it("should reject if username invalid", async () => {
         const response = await request(web).post("/api/users")
             .set("Accept", "application/json")
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436ui3",
+                username: "yaz@khairul",
                 password: "password",
                 confirm_password: "password"
             });
@@ -56,7 +55,7 @@ describe("POST /api/users", () => {
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436ui3",
+                username: "yazidkhairul_",
                 password: "password",
                 confirm_password: "salah"
             });
@@ -75,7 +74,7 @@ describe("POST /api/users", () => {
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436ui3",
+                username: "yazidkhairul_",
                 password: "password",
                 confirm_password: "salah"
             });
@@ -87,16 +86,16 @@ describe("POST /api/users", () => {
 
     });
 
-    it("should reject if phone already exist", async () => {
+    it("should reject if username already exist", async () => {
 
-        const registerFirst = await createCustomerTest("rizal", "0895600436143", "password");
+        const registerFirst = await createCustomerTest("rizal", "yazidkhairul_", "password");
         
         const response = await request(web).post("/api/users")
             .set("Accept", "application/json")
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436143",
+                username: "yazidkhairul_",
                 password: "password",
                 confirm_password: "salah"
             });
