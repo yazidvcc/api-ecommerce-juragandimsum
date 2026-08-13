@@ -21,27 +21,26 @@ describe("POST /api/users", () => {
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436143",
-                password: "Password123",
-                confirm_password: "Password123"
+                username: "yazidkhairul_",
+                password: "password",
+                confirm_password: "password"
             });
 
         depth(response.body);
 
         expect(response.status).toBe(201);
         expect(response.body.data.name).toBe("yazid khairul");
-        expect(response.body.data.phone).toBe("0895600436143");
+        expect(response.body.data.username).toBe("yazidkhairul_");
 
     });
 
-    it("should reject if phone invalid", async () => {
-
+    it("should reject if username invalid", async () => {
         const response = await request(web).post("/api/users")
             .set("Accept", "application/json")
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436ui3",
+                username: "yaz@khairul",
                 password: "password",
                 confirm_password: "password"
             });
@@ -60,7 +59,7 @@ describe("POST /api/users", () => {
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436ui3",
+                username: "yazidkhairul_",
                 password: "password",
                 confirm_password: "salah"
             });
@@ -79,7 +78,7 @@ describe("POST /api/users", () => {
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436ui3",
+                username: "yazidkhairul_",
                 password: "password",
                 confirm_password: "salah"
             });
@@ -91,16 +90,16 @@ describe("POST /api/users", () => {
 
     });
 
-    it("should reject if phone already exist", async () => {
+    it("should reject if username already exist", async () => {
 
-        const registerFirst = await createUserTest("rizal", "0895600436143", "password");
-
+        const registerFirst = await createUserTest("rizal", "yazidkhairul_", "password");
+        
         const response = await request(web).post("/api/users")
             .set("Accept", "application/json")
             .send({
                 first_name: "yazid",
                 last_name: "khairul",
-                phone: "0895600436143",
+                username: "yazidkhairul_",
                 password: "password",
                 confirm_password: "salah"
             });
@@ -126,19 +125,19 @@ describe("POST /api/users/login", () => {
 
     it("should success user login", async () => {
 
-        const userRegister = await createUserTest("yazid", "0895600436143", "password")
+        const userRegister = await createUserTest("yazid", "yazidkhairul_", "password")
 
         const response = await request(web).post("/api/users/login")
             .set("Accept", "application/json")
             .send({
-                phone: "0895600436143",
+                username: "yazidkhairul_",
                 password: "password"
             });
 
         depth(response.body);
 
         expect(response.status).toBe(200);
-        expect(response.body.data.phone).toBe("0895600436143");
+        expect(response.body.data.username).toBe("yazidkhairul_");
 
     });
 
@@ -147,7 +146,7 @@ describe("POST /api/users/login", () => {
         const response = await request(web).post("/api/users/login")
             .set("Accept", "application/json")
             .send({
-                phone: "089560043iuop",
+                username: "0895600436143",
                 password: "password"
             });
 
@@ -160,12 +159,12 @@ describe("POST /api/users/login", () => {
 
     it("should reject if password invalid", async () => {
 
-        const userRegister = await createUserTest("yazid", "0895600436143", "password")
+        const userRegister = await createUserTest("yazid", "yazidkhairul_", "password")
 
         const response = await request(web).post("/api/users/login")
             .set("Accept", "application/json")
             .send({
-                phone: "0895600436143",
+                username: "yazidkhairul_",
                 password: "salah"
             });
 
@@ -188,9 +187,9 @@ describe("GET /api/users", () => {
     });
 
     it("should success get user", async () => {
-        const userRegister = await createUserTest("yazid", "0895600436143", "password");
+        const userRegister = await createUserTest("yazid", "yazidkhairul_", "password");
 
-        const userLogin = await loginUserTest("0895600436143", "password");
+        const userLogin = await loginUserTest("yazidkhairul_", "password");
 
         const response = await request(web).get("/api/users")
             .set("authorization", `Bearer ${userLogin.body.data.accessToken}`)
@@ -198,11 +197,11 @@ describe("GET /api/users", () => {
         depth(response.body);
 
         expect(response.status).toBe(200);
-        expect(response.body.data.phone).toBe(userLogin.body.data.phone);
+        expect(response.body.data.username).toBe(userLogin.body.data.username);
     })
 
     it("should reject if user not login", async () => {
-        const userRegister = await createUserTest("yazid", "0895600436143", "password");
+        const userRegister = await createUserTest("yazid", "yazidkhairul_", "password");
 
         const response = await request(web).get("/api/users")
             .set("authorization", `Bearer asalaja`)
@@ -227,8 +226,8 @@ describe("POST /api/users/logout", () => {
 
     it("should success logout", async () => {
 
-        const userRegister = await createUserTest("yazid", "0895600436143", "password");
-        const loginUser = await loginUserTest("0895600436143", "password");
+        const userRegister = await createUserTest("yazid", "yazidkhairul_", "password");
+        const loginUser = await loginUserTest("yazidkhairul_", "password");
 
         const response = await request(web).post("/api/users/logout")
             .set("Cookie", loginUser.get("Set-Cookie"));
@@ -254,8 +253,8 @@ describe("POST /api/users/refresh", () => {
 
     it("should success get new access token", async () => {
 
-        const userRegister = await createUserTest("yazid", "0895600436143", "password");
-        const loginUser = await loginUserTest("0895600436143", "password");
+        const userRegister = await createUserTest("yazid", "yazidkhairul_", "password");
+        const loginUser = await loginUserTest("yazidkhairul_", "password");
 
         const response = await request(web).post("/api/users/refresh")
             .set("Cookie", loginUser.get("Set-Cookie"));

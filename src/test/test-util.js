@@ -3,26 +3,25 @@ import bcrypt from "bcrypt";
 import request from "supertest";
 import { web } from "../application/web.js";
 
-const createUserTest = async (name, phone, password, role = "CUSTOMER") => {
+const createUserTest = async (name, username, password) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
     return prismaClient.user.create({
         data: {
             name: name,
-            phone: phone,
-            password: passwordHash,
-            role: role
+            username: username,
+            password: passwordHash
         }
     });
 
 };
 
-const loginUserTest = async (phone, password) => {
+const loginUserTest = async (username, password) => {
     return request(web).post("/api/users/login")
         .set("Accept", "application/json")
         .send({
-            phone: phone,
+            username: username,
             password: password
         });
 }
