@@ -12,7 +12,7 @@ const province = async () => {
     const response = await fetch(url, options);
     const result = await response.json();
 
-    return result;
+    return result.data;
 
 }
 
@@ -49,6 +49,8 @@ const district = async (cityId) => {
 }
 
 const subdistrict = async (districtId) => {
+
+    districtId = validate(idAddressValidation, districtId);
 
     const url = `https://wilayah.id/api/villages/${districtId}.json`;
     const options = {

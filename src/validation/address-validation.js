@@ -1,7 +1,10 @@
 import Joi from "joi";
 
-const idAddressValidation = Joi.number().positive().required();
+const idAddressValidation = Joi.alternatives().try(
+    Joi.string().required(),
+    Joi.number().positive().required()
+).required();
 
-export{
+export {
     idAddressValidation
 };

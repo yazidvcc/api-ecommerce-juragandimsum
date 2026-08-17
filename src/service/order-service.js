@@ -1,4 +1,4 @@
-import { createOrderValidation, createShippingCostOrderValidation, idOrderValidation, searchOrderValidation, statistictTime, updateStatusOrderValidation } from "../validation/order-validation.js"
+import { createOrderValidation, idOrderValidation, searchOrderValidation, statistictTime, updateStatusOrderValidation } from "../validation/order-validation.js"
 import validate from "../validation/validation.js"
 import prismaClient from "../application/database.js";
 import { v4 as uuid } from "uuid";
@@ -25,7 +25,7 @@ const create = async (request, userId) => {
                 }
             }
         })
-        
+
         if (cart.length === 0) {
             throw new ResponseError(404, "Your shopping cart is empty")
         }
@@ -166,7 +166,7 @@ const getNotification = async (request) => {
                 });
 
                 await restoreStock(tx, order.id);
-            });
+            })
 
             return {
                 message: "Transaction flagged as fraud, order cancelled"
@@ -218,6 +218,29 @@ const getNotification = async (request) => {
     }
 
     throw new ResponseError(400, `Unhandled transaction status: ${transactionStatus}`);
+
+}
+
+const restoreStock = async (tx, orderId) => {
+
+    const orderDetails = await tx.orderDetail.findMany({
+        where: {
+            order_id: orderId
+        }
+    })
+
+    await Promise.all(orderDetails.map(async item => {
+        await tx.product.update({
+            where: {
+                id: item.product_id
+            },
+            data: {
+                stock: {
+                    increment: item.quantity
+                }
+            }
+        })
+    }))
 
 }
 
@@ -323,8 +346,9 @@ const search = async (request, user) => {
             },
             address: true,
             total_price: true,
-            shipping_cost: true,
             shipping_name: true,
+            loket_name: true,
+            pickup_location: true,
             payment_status: true,
             status: true,
             orderDetails: {

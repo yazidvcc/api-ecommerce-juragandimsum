@@ -10,7 +10,9 @@ import { apiLimiter } from './rate-limit.js';
 
 const web = express();
 web.use(corsMiddleware);
-web.use(helmet());
+web.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 web.use(apiLimiter);
 web.use(express.json({ limit: '2mb' }));
 web.use(cookieParser());

@@ -26,8 +26,6 @@ protectedRouter.delete("/carts/:cartId", roleMiddleware(["CUSTOMER"]) ,cartContr
 
 protectedRouter.post("/orders", roleMiddleware(["CUSTOMER"]) ,orderController.create);
 protectedRouter.get("/orders/statistict", roleMiddleware(["ADMIN"]), orderController.statistictOder);
-protectedRouter.post("/orders/:orderId/shipping-cost", roleMiddleware(["ADMIN"]) ,orderController.shippingCost);
-protectedRouter.post("/orders/:orderId/payment", roleMiddleware(["CUSTOMER"]) ,orderController.tokenTransaction);
 protectedRouter.get("/orders", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.search);
 protectedRouter.get("/orders/:orderId", roleMiddleware(["CUSTOMER","ADMIN"]), orderController.get);
 protectedRouter.post("/orders/:orderId/status", roleMiddleware(["ADMIN","CUSTOMER"]), orderController.handleStatus);
