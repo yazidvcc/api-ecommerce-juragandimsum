@@ -22,8 +22,8 @@ const idOrderValidation = Joi.number().positive().required();
 
 const searchOrderValidation = Joi.object({
     order_id: Joi.number().positive().optional(),
-    phone_user: Joi.string().optional(),
     name_user: Joi.string().optional(),
+    username: Joi.string().optional(),
     address: Joi.string().optional(),
     shipping_name: Joi.string().optional(),
     status: Joi.string().valid("PENDING", "SHIPPED", "DELIVERED", "CANCELLED").optional(),

@@ -151,7 +151,7 @@ const tokenTransaction = async (orderId, userId) => {
                 select: {
                     id: true,
                     name: true,
-                    phone: true
+                    username: true
                 }
             },
             orderDetails: {
@@ -209,7 +209,7 @@ const tokenTransaction = async (orderId, userId) => {
         "item_details": itemDetails,
         "customer_details": {
             "first_name": order.user.name,
-            "phone": order.user.phone
+            "username": order.user.username
         }
     }
 
@@ -364,10 +364,10 @@ const search = async (request, user) => {
         })
     }
 
-    if (request.phone_user) {
+    if (request.username) {
         filters.push({
             user: {
-                phone: request.phone_user
+                username: request.username
             }
         })
     }
@@ -442,7 +442,7 @@ const search = async (request, user) => {
                 select: {
                     id: true,
                     name: true,
-                    phone: true
+                    username: true
                 }
             },
             address: true,
@@ -493,7 +493,7 @@ const get = async (orderId) => {
                 select: {
                     id: true,
                     name: true,
-                    phone: true
+                    username: true
                 }
             },
             orderDetails: {
@@ -590,7 +590,7 @@ const statistictOrder = async (request) => {
                         lte: request.date_end
                     }
                 },
-                {
+                {   
                     payment_status: {
                         equals: "SUCCESS"
                     }
