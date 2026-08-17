@@ -10,203 +10,102 @@ const create = async (request, userId) => {
 
     request = validate(createOrderValidation, request);
 
-    return await prismaClient.$transaction(async (tx) => {
+    const order = await prismaClient.$transaction(async (tx) => {
+        const cart = await tx.cart.findMany({
+            where: {
+                user_id: userId
+            },
+            include: {
+                product: {
+                    select: {
+                        name: true,
+                        price: true,
+                        stock: true
+                    }
+                }
+            }
+        })
+        
+        if (cart.length === 0) {
+            throw new ResponseError(404, "Your shopping cart is empty")
+        }
+
         let total_price = 0;
 
-        for (const productRequest of request.product) {
-            let product = await tx.product.findUnique({
-                where: {
-                    id: productRequest.product_id
-                },
-                select: {
-                    id: true,
-                    stock: true,
-                    price: true
-                }
-            });
-
-            if (!product) {
-                throw new ResponseError(404, "Product not found");
+        const itemDetails = await Promise.all(cart.map(async (item) => {
+            if (item.product.stock < item.quantity) {
+                throw new ResponseError(400, `Product with name ${item.product.name} has insufficient stock`);
             }
-
-            if (product.stock < productRequest.quantity) {
-                throw new ResponseError(400, "Stock is not enough");
-            }
-
-            total_price += product.price * productRequest.quantity;
 
             await tx.product.update({
                 where: {
-                    id: product.id
+                    id: item.product_id
                 },
                 data: {
                     stock: {
-                        decrement: productRequest.quantity
+                        decrement: item.quantity
                     }
                 }
             });
-        }
 
-        request.user = {
-            connect: {
-                id: userId
+            total_price += item.product.price * item.quantity;
+
+            return {
+                product_id: item.product_id,
+                quantity: item.quantity
             }
-        };
-        const addressWithoutPostalCode = `${request.spesifict_address}, ${request.district}, ${request.city}, ${request.province}`;
-        const addressWithPostalCode = `${request.spesifict_address}, ${request.postal_code}, ${request.district}, ${request.city}, ${request.province}`;
-        request.address = request.postal_code ? addressWithPostalCode : addressWithoutPostalCode;
-        request.total_price = total_price;
-        request.orderDetails = {
-            createMany: {
-                data: request.product
-            }
-        };
+        }))
 
-        delete request.product
-        delete request.spesifict_address
-        delete request.province
-        delete request.city
-        delete request.district
-        delete request.postal_code
+        const address = request.province + ", " + request.city + ", " + request.district + ", " + request.sub_district;
 
-        const order = await tx.order.create({
-            data: request,
-            select: {
-                id: true,
-                user_id: true,
-                address: true,
-                total_price: true,
-                status: true
-            }
-        })
-
-        return order;
-    });
-
-};
-
-const shippingCost = async (request) => {
-
-    request = validate(createShippingCostOrderValidation, request);
-
-    const order = await prismaClient.order.findUnique({
-        where: {
-            id: request.order_id
-        }
-    });
-
-    if (!order) {
-        throw new ResponseError(404, "Order is not found");
-    }
-
-    if (order.status !== "PENDING") {
-        throw new ResponseError(400, "Can only set shipping cost for pending orders");
-    }
-
-    if (order.shipping_cost) {
-        throw new ResponseError(400, "Shipping cost already set");
-    }
-
-    delete request.order_id;
-
-    return await prismaClient.order.update({
-        where: {
-            id: order.id
-        },
-        data: request,
-        select: {
-            id: true,
-            user_id: true,
-            address: true,
-            total_price: true,
-            shipping_cost: true,
-            shipping_name: true,
-            status: true
-        }
-    });
-
-}
-
-const tokenTransaction = async (orderId, userId) => {
-
-    orderId = validate(idOrderValidation, orderId);
-
-    const user = await prismaClient.user.findUnique({
-        where: {
-            id: userId
-        }
-    });
-
-    if (!user) {
-        throw new ResponseError(404, "User is not found");
-    }
-
-    const order = await prismaClient.order.findFirst({
-        where: {
-            id: orderId,
-            user_id: userId
-        },
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    name: true,
-                    username: true
+        return await tx.order.create({
+            data: {
+                user_id: userId,
+                address: address,
+                total_price: total_price,
+                orderDetails: {
+                    createMany: {
+                        data: itemDetails
+                    }
                 }
             },
-            orderDetails: {
-                select: {
-                    id: true,
-                    product: {
-                        select: {
-                            id: true,
-                            name: true,
-                            price: true
-                        }
-                    },
-                    quantity: true
-                }
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        username: true
+                    }
+                },
+                orderDetails: true
             }
-        }
-    });
-
-    if (!order) {
-        throw new ResponseError(404, "Order is not found");
-    }
-
-    if (order.status === "DELIVERED" || order.status === "CANCELLED") {
-        throw new ResponseError(400, "the order has been processed")
-    }
-
-    if (order.payment_status === "SUCCESS") {
-        throw new ResponseError(400, "Payment already completed for this order")
-    }
-
-    const itemDetails = order.orderDetails.map(detail => ({
-        id: detail.product.id.toString(),
-        price: detail.product.price,
-        quantity: detail.quantity,
-        name: detail.product.name
-    }));
-
-    if (order.shipping_cost) {
-        itemDetails.push({
-            id: "SHIPPING",
-            price: order.shipping_cost,
-            quantity: 1,
-            name: order.shipping_name || "Shipping"
-        });
-    }
+        })
+    })
 
     let parameter = {
         "transaction_details": {
             "order_id": order.id,
-            "gross_amount": order.total_price + (order.shipping_cost || 0)
+            "gross_amount": order.total_price
         },
         "credit_card": {
             "secure": true
         },
-        "item_details": itemDetails,
+        "item_details": await Promise.all(order.orderDetails.map(async item => {
+            const product = await prismaClient.product.findUnique({
+                where: {
+                    id: item.product_id,
+                },
+                select: {
+                    name: true,
+                    price: true
+                }
+            })
+            return {
+                id: item.product_id,
+                name: product.name,
+                price: product.price,
+                quantity: item.quantity
+            }
+        })),
         "customer_details": {
             "first_name": order.user.name,
             "username": order.user.username
@@ -222,7 +121,7 @@ const tokenTransaction = async (orderId, userId) => {
 
     return response;
 
-}
+};
 
 const getNotification = async (request) => {
 
@@ -320,29 +219,6 @@ const getNotification = async (request) => {
 
     throw new ResponseError(400, `Unhandled transaction status: ${transactionStatus}`);
 
-}
-
-const restoreStock = async (tx, orderId) => {
-    const orderDetails = await tx.orderDetail.findMany({
-        where: { order_id: orderId },
-        select: {
-            product_id: true,
-            quantity: true
-        }
-    });
-
-    for (const detail of orderDetails) {
-        if (detail.product_id) {
-            await tx.product.update({
-                where: { id: detail.product_id },
-                data: {
-                    stock: {
-                        increment: detail.quantity
-                    }
-                }
-            });
-        }
-    }
 }
 
 const search = async (request, user) => {
@@ -590,7 +466,7 @@ const statistictOrder = async (request) => {
                         lte: request.date_end
                     }
                 },
-                {   
+                {
                     payment_status: {
                         equals: "SUCCESS"
                     }
@@ -612,8 +488,6 @@ const statistictOrder = async (request) => {
 
 export default {
     create,
-    shippingCost,
-    tokenTransaction,
     getNotification,
     search,
     get,

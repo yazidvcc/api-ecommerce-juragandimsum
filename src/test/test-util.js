@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import request from "supertest";
 import { web } from "../application/web.js";
 
-const createUserTest = async (name, username, password) => {
+const  createUserTest = async (name, username, password, role = "CUSTOMER") => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -11,7 +11,8 @@ const createUserTest = async (name, username, password) => {
         data: {
             name: name,
             username: username,
-            password: passwordHash
+            password: passwordHash,
+            role: role
         }
     });
 
