@@ -18,7 +18,7 @@ describe("GET /api/address/province", () => {
 describe("GET /api/address/city", () => {
 
     it("should success get data city", async () => {
-        const response = await request(web).get("/api/address/city/16");
+        const response = await request(web).get("/api/address/city/12");
 
         depth(response.body);
 
@@ -31,7 +31,7 @@ describe("GET /api/address/city", () => {
 describe("GET /api/address/district", () => {
 
     it("should success get data district", async () => {
-        const response = await request(web).get("/api/address/district/361");
+        const response = await request(web).get("/api/address/district/12.71");
 
         depth(response.body);
 
@@ -44,7 +44,7 @@ describe("GET /api/address/district", () => {
 describe("GET /api/address/subdistrict", () => {
 
     it("should success get data subdistrict", async () => {
-        const response = await request(web).get("/api/address/subdistrict/3499");
+        const response = await request(web).get("/api/address/subdistrict/12.71.12");
 
         depth(response.body);
 
