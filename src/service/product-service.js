@@ -329,6 +329,11 @@ const statistictProduct = async (request) => {
                                 status: {
                                     equals: "SHIPPED"
                                 }
+                            },
+                            {
+                                payment_status: {
+                                    equals: "SUCCESS"
+                                }
                             }
                         ]
                     }
